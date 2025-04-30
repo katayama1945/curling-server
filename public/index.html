@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>カーリング対戦サンプル</title>
+</head>
+<body>
+  <h2>カーリングネット対戦</h2>
+  <button id="throwBtn">ストーンを投げる</button>
+  <div id="log"></div>
+
+  <h3>チャット</h3>
+  <input id="msg" type="text" />
+  <button id="send">送信</button>
+  <ul id="chatlog"></ul>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+
+    document.getElementById('throwBtn').onclick = () => {
+      const fakeData = { x: Math.random() * 100, y: Math.random() * 100 };
+      socket.emit('stoneThrow', fakeData);
+      log(`🧊 自分が投げた: ${JSON.stringify(fakeData)}`);
+    };
+
+    socket.on('stoneUpdate', (data) => {
+      log(`📡 相手が投げた: ${JSON.stringify(data)}`);
+    });
+
+    document.getElementById('send').onclick = () => {
+      const msg = document.getElementById('msg').value;
+      socket.emit('chat', msg);
+      document.getElementById('msg').value = '';
+    };
+
+    socket.on('chat', (msg) => {
+      const li = document.createElement('li');
+      li.textContent = msg;
+      document.getElementById('chatlog').appendChild(li);
+    });
+
+    function log(msg) {
+      const d = document.getElementById('log');
+      d.innerHTML += msg + '<br>';
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,5 @@
+npm init -y
+npm install express socket.io
+"scripts": {
+  "start": "node server.js"
+}
