@@ -1339,8 +1339,8 @@ maximum-scale=1.0, user-scalable=no" />
             let stoneEl= document.getElementById("stoneL"+data.ix);
             let p = cStn.getPixel(exSheet);
             console.log("p="+ p.x+","+p.y)
-            stoneEl.offsetLeft = p.x;
-            stoneEl.offsetTop = p.y;
+            stoneEl.style.left = p.x;
+            stoneEl.style.top = p.y;
             anotherStone(stoneEl,spin);
 
             //stn.body.setPosition(planck.Vec2(data.x, data.y));
