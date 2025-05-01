@@ -1294,12 +1294,13 @@ maximum-scale=1.0, user-scalable=no" />
         // setCursorToBrush();
         shootingStone = cStone[ix];
         animate();
-        sendStone();
+        sendStone(cStone[ix]);
         DragAble=true;
     }
 
     //サーバーにストーン投擲情報を送る
     function sendStone(cStn){
+        console.log("🧊 送信するストーン:", cStn);
         const data = {
             ix: cStn.index,
             x: cStn.getX(),
@@ -1312,6 +1313,7 @@ maximum-scale=1.0, user-scalable=no" />
     }
     // 受信してストーンを再現
     socket.on('stoneUpdate', (data) => {
+        console.log("📡 受信したデータ:", data);
         const cStn = cStone[data.ix];
         cStn.body.setPosition(planck.Vec2(data.x, data.y));
         cStn.body.setLinearVelocity(planck.Vec2(data.vx, data.vy));
