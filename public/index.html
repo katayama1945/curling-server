@@ -1333,10 +1333,12 @@ maximum-scale=1.0, user-scalable=no" />
             cStn.life = 2;
             animate();
         }else if(data.flag===2){
+            console.log("x,y="+ data.x+","+data.y)
             cStn.setXY(data.x, data.y);
             let spin = data.spin;
             let stoneEl= document.getElementById("stoneL"+data.ix);
             let p = cStn.getPixel(exSheet);
+            console.log("p="+ p.x+","+p.y)
             stoneEl.offsetLeft = p.x;
             stoneEl.offsetTop = p.y;
             anotherStone(stoneEl,spin);
