@@ -1,48 +1,1707 @@
-<!DOCTYPE html>
 <html>
 <head>
-  <title>カーリング対戦サンプル</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="viewport" content="width=device-width, minimum-scale=1.0,
+maximum-scale=1.0, user-scalable=no" />
+<meta name="apple-mobile-web-app-capable" content="yes" /> 
+<title>カーリングパラダイス</title>
 </head>
+<script src="https://unpkg.com/planck-js@0.3.0/dist/planck.min.js"></script>
+<script src="https://curling-server.onrender.com/socket.io/socket.io.js"></script>
+<script>
+    const socket = io("https://curling-server.onrender.com");
+    //let lang=window.localStorage.getItem(['Language']);
+
+
+
+
+    enemyStone.set(data.x, data.y, data.vx, data.vy, data.spin);
+
+</script>
 <body>
-  <h2>カーリングネット対戦</h2>
-  <button id="throwBtn">ストーンを投げる</button>
-  <div id="log"></div>
-
-  <h3>チャット</h3>
-  <input id="msg" type="text" />
-  <button id="send">送信</button>
-  <ul id="chatlog"></ul>
-
-  <script src="/socket.io/socket.io.js"></script>
-  <script>
-    const socket = io();
-
-    document.getElementById('throwBtn').onclick = () => {
-      const fakeData = { x: Math.random() * 100, y: Math.random() * 100 };
-      socket.emit('stoneThrow', fakeData);
-      log(`🧊 自分が投げた: ${JSON.stringify(fakeData)}`);
-    };
-
-    socket.on('stoneUpdate', (data) => {
-      log(`📡 相手が投げた: ${JSON.stringify(data)}`);
-    });
-
-    document.getElementById('send').onclick = () => {
-      const msg = document.getElementById('msg').value;
-      socket.emit('chat', msg);
-      document.getElementById('msg').value = '';
-    };
-
-    socket.on('chat', (msg) => {
-      const li = document.createElement('li');
-      li.textContent = msg;
-      document.getElementById('chatlog').appendChild(li);
-    });
-
-    function log(msg) {
-      const d = document.getElementById('log');
-      d.innerHTML += msg + '<br>';
-    }
-  </script>
+    <div id="$Title"> カーリングパラダイス</div>
+    <div id="pnlArea" >
+        <div id="scrollGuide"></div>
+        <div id="containerOfWholeSheet">
+            <canvas id="wholeSheet" width="100" height="1000">
+                <!--全体シート-->
+            </canvas>
+        </div>
+        <div id="detail">
+            <div id="dashboard">
+                <div id="stage">
+                    <div id="messageBox"></div>
+                    <div id="buttons">
+                        <button id="Start">開始</button>
+                        <button id="topMost" onclick="topMost()">top</button>
+                        <button id="bottomMost" onclick="bottomMost()">Bottom</button>
+                        <input type="checkbox" id="chkLinkage" checked />
+                        <label for="chkLinkage" style="color:azure">連動</label>
+                        <label id="sideview" style="color:azure">＜＜</label>
+                    </div>
+                </div>
+                <div id="scoreBox">
+                    <table id="score" border="1">
+                        <thead>
+                            <tr id="topheader">
+                                <th scope="col"></th>
+                                <th scope="col">1</th>
+                                <th scope="col">2</th>
+                                <th scope="col">3</th>
+                                <th scope="col">4</th>
+                                <th scope="col">5</th>
+                                <th scope="col">6</th>
+                                <th scope="col">7</th>
+                                <th scope="col">8</th>
+                                <th scope="col">9</th>
+                                <th scope="col">10</th>
+                                <th scope="col">計</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr id="score1" class="scoreColomn">
+                                <th>A</th><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+                            </tr>
+                            <tr id="score2" class="scoreColomn">
+                                <th>B</th><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div id="scrollerOfExpansionSheet">
+                <div id="containerOfExpansionSheet">
+                    <canvas id="expansionSheet" width="1600" height="100">
+                        <!--拡大シート-->
+                    </canvas>
+                    <img id="brushCursor" src="brush1.png">
+                </div>
+            </div>
+        </div>
+        <div id="border" class="border"></div>
+        <div id="sidebar">
+            
+        </div>
+    </div>
+    <div id="login">
+        名前を入れて<br>
+        <label id="lblNameA">A</label>
+        <input id="txtNameA" class="loginName" type="text">赤<br>
+        <label id="lblNameB">B</label>
+        <input id="txtNameB" class="loginName" type="text">黄<br><br>
+        <button id="playon" onclick="PlayCurling()">スタート</button>
+    </div>
+    <div id="log" style="position:fixed; bottom:0; left:0; right:0; max-height:150px; overflow:auto; background:#000; color:#0f0; font-size:12px; padding:5px; z-index:9999;"></div>
 </body>
+<style>
+    #pnlArea{
+        display: flex;
+        flex-direction: row;
+        width:99%;
+        height:100%;
+        border: 2px solid green;
+    }
+    #login{
+        display:none;
+        position:absolute;
+        left:10px;
+        top:240px;
+        width:400px;
+        height:130px;
+        margin:100px;
+        background-color: white;
+        border: 2px solid green;
+        text-align: center;
+        z-index: 50;
+    }
+    .loginName{
+        width:150px;
+    }
+    .loginPass{
+        width:100px;
+    }
+    #containerOfWholeSheet{
+        display: flex;
+        border: 5px solid darkblue;
+        margin: 1px;
+        height:100%;
+        flex: 0 0 auto;
+        position: relative; /*<--これがあるとGuideが反応しない*/
+    }
+    #scrollGuide{
+        display: block;
+        position:absolute;
+        border: 3px solid red;
+        width:95%;
+        height:30px;
+        z-index: 50;
+
+    }
+
+    #wholeSheet {
+        position: relative;
+        width:100%;
+        height: 100%;
+        background-color: rgb(233, 243, 249);
+    }
+    #detail{
+        flex: 1 0 auto;
+        display:flex;
+        flex-direction: column;
+    }
+    #dashboard{
+        display: flex;
+        flex: 1 1 auto;
+        height: 80px;
+        flex-direction: row;
+        background-color: blue;
+    }
+    #stage{
+        display: flex;
+        flex: 0 1 auto;
+        width:280px;
+        flex-direction: column;
+    }
+    #messageBox{
+        color:white;
+        height:80px;
+    }
+    #buttons{
+        display:flex;
+        flex: 0 1 auto;
+        height:35px;
+        flex-direction: row;
+    }
+    #scoreBox{
+        flex: 1;
+    }
+    #score{
+        border-collapse: collapse;
+        border-color:yellow;
+        color:white;
+        border: 1;
+        width:100%;
+    }
+    td{
+        empty-cells: show;
+    }
+    #topheader{
+        height:10px;
+        font-size:10px;
+    }
+    #scrollerOfExpansionSheet{
+        display:flex;
+        border: solid 5px black;
+        overflow-y: scroll;
+        text-align: center;
+    }
+    #containerOfExpansionSheet{
+        display:block;
+        position: relative;
+    }
+    #expansionSheet{
+        position: relative;
+        cursor: url('brush1.png') 16,16,auto;
+        width:100%;
+        height:100%;
+        background-color: rgb(233, 243, 249);
+    }
+    #brushCursor{
+        position: absolute;
+        width: 32px;
+        height: 32px;
+        pointer-events: none;
+        display: none;
+        transform-origin: center center;
+        z-index: 1000;        
+    }
+    #sidebar{
+        flex: 1 0 auto;
+        display:flex;
+        height: 100%;
+        flex-direction: column;
+       border: 2px solid darkgray;
+    }
+    .border{
+        width: 5px;
+        cursor: ew-resize;
+        background-color: blue;
+        position: absolute;
+        overflow: hidden;
+        top: 0;
+        bottom: 0;
+        z-index: 10;
+        touch-action: none;   
+    }
+    .cStn{
+        position:absolute;
+        width:10;
+        height:10;
+    }
+    .lstone{
+        position:absolute;
+        width:20;
+        height:20;
+    }
+</style>
+<script>
+    //カーリングは、長さ約44.5 - 45.7メートル（146 - 150フィート）、
+    // 幅約4.4 - 5.0メートル（14フィート6インチ - 16フィート5インチ）の
+    // カーリング・シート（curling sheet、シート、アイス・シートとも）と
+    // 呼ばれる細長い長方形のアイスリンクで行われる[9]。(wikipedia)
+    //このゲームでは基本のサイズはフィートで決め、ピクセルで表示する
+    class clsStone{
+        //ストーンのクラス
+        //x,y:ストーンの座標位置/左上からの距離(ft)
+        //speed:速度
+        //direction:角度
+        //rotation:回転
+        //life; 状態 r
+        // 0:初期待機状態
+        // 1:投擲準備ドラッグ可能、ドラッグ中
+        // 2:慣性移動中 衝突判定する
+        // 3:ゴール 衝突判定する
+        // 　21:側壁に接触 
+        //   22:ゴール先オーバー 
+        //   23:タイムアウト
+        life;
+        x;
+        y;
+        speed;      //速度
+        direction;  //角度
+        rotation;   //回転
+        mass=1.0;   //質量
+        vx;
+        vy;
+        visible=true;
+        collided=new Set(); //衝突済みストーンのリスト
+
+        constructor(ix,x,y, color, radius){
+            this.index = ix;
+            this.life = 0;
+
+            this.body = world.createDynamicBody({
+                position: pl.Vec2(x, y),
+                linearVelocity: pl.Vec2(0, 0),
+            });
+
+            this.body.createFixture(pl.Circle(radius), {  // ← 半径radius渡すように変更
+                density: 1.0,
+                friction: 0.01,      // ★摩擦超小さく
+                restitution: 0.99     // ★反発高め
+            });
+
+            // this.body.setLinearDamping(0.01);    // ★空気抵抗みたいなもの
+            this.body.setLinearDamping(0.2);        // 走行抵抗
+            this.body.setAngularDamping(0.01);      // ★回転の減衰
+        }
+        setSituation(stoneEl, speed, direction, rotation){
+            let sheet = stoneEl.parentElement;
+            const scale = getScale(sheet);
+            const x= stoneEl.offsetLeft/scale + stoneRadius;
+            const y= stoneEl.offsetTop/scale + stoneRadius;
+            this.setXY(x,y);
+            const correctedDirection = direction;
+            const vy = Math.sin(direction) * speed*1;  // ← 0.1はスピード調整用
+            const vx = Math.cos(direction) * speed*1;
+            this.setVxy(vx, vy);
+            this.body.setAngularVelocity(rotation);     //ストーンの回転速度
+            this.body.setAngularDamping(0.2);           //回転の減衰ピッチ
+        }
+        getPixel(sheetEl){ 
+            //クラスのフィート座標から、ピクセル座標を返す
+            let ret={};
+            let scale = getScale(sheetEl);
+            ret.x = (this.getX() - stoneRadius) * scale; 
+            ret.y = (this.getY() - stoneRadius) * scale;
+            return ret;
+        }
+        
+        setFeet(stoneEl,sheetEl){ //Pixel座標をフィート座標にして保存
+            //ストーンElement //シートElement
+            if (!sheetEl) sheetEl = stoneEl.parentElement;
+            const scale = getScale(sheetEl);
+            const x = stoneEl.offsetLeft/scale + stoneRadius;
+            const y = stoneEl.offsetTop/scale + stoneRadius;
+            this.setXY(x,y);
+        }
+        getX(sheetEl){
+            if(!sheetEl){
+                return this.body.getPosition().x;
+            }else{
+                const scale= getScale(sheetEl);
+                return this.body.getPosition().x*scale;
+            }
+        }
+        getY(sheetEl){
+            if(!sheetEl){
+                return this.body.getPosition().y;
+            }else{
+                const scale= getScale(sheetEl);
+                return this.body.getPosition().y*scale;
+            }
+        }
+        getVxy(){
+            return this.body.getLinearVelocity();
+        }
+        getVx(){
+            if (!this.body) {
+                return 0;
+            }
+            let vel = this.body.getLinearVelocity();
+            if (!vel) {
+                return 0;
+            }
+            if (isNaN(vel.x)) {
+                return 0;
+            }
+            return vel.x;
+        }
+        getVy(){
+            const vel = this.body.getLinearVelocity();
+            return vel.y;
+        }
+        setXY(x, y) {
+            this.body.setPosition(planck.Vec2(x, y));
+        }
+        setVxy(vx, vy) {
+            this.body.setLinearVelocity(pl.Vec2(vx, vy));
+        }
+        setAngle(angle){
+            this.body.setAngle(angle)
+        }
+        getAngle(){
+            return this.body.getAngle();
+        }
+        getSpinSpeed(){
+            //回転速度
+            return this.body.getAngularVelocity();
+        }
+        getSpeed(){
+            // console.log("cstone vx="+ this.getVx()+ " vy="+ this.getVy())
+            return Math.hypot(this.getVx(),this.getVy());
+        }
+        getDistance(){
+            //ティーからの距離
+            return Math.hypot((this.getY()-(sheetHeight/2-houseCenter)),(this.getX()-sheetWidth/2));
+        }
+        visibility(flag){
+            this.visible=flag;
+        }
+    }
+    //対戦メンバー
+    class clsMember{
+        name=[];
+        total=[];
+
+        getName(ix){
+            return this.name[ix];
+        }
+        winner(flag){
+            let w=0;
+            if(this.total[0] > this.total[1]){
+                if(flag){
+                    return this.name[0];
+                }else{
+                    return 0;
+                }
+            }else if(this.total[0] < this.total[1]){
+                if(flag){
+                    return this.name[1];
+                }else{
+                    return 1;
+                }
+            }else{
+                if(flag){
+                    return "引き分け";
+                }else{
+                    return -1;
+                }
+            }
+        }
+        constructor(nameA,nameB){
+            this.name[0]=nameA;
+            this.name[1]=nameB;
+            this.total[0]=0;
+            this.total[1]=0;
+        }
+    }
+    //ver 0.00 :iPadのドラッグ(bk50)
+    //ver 0.01 :ログイン画面(bk51)
+    //ver 0.02 :Matter.js(bk70)
+    //ver 0.03 :投擲完了(bk72) 25/4/24
+    //ver 0.04 :衝突分離(bk73) 25/4/24
+    //ver 0.05 :ラバーバンドの不具合修正、カーブ(bk77) 25/4/26
+    //ver 0.06 :得点板作成(bk78) 25/4/27
+    //ver 0.07 :Planck.js(bk80) 25/4/28
+    //ver 0.08 :スイープ機能(bk82) 25/4/29
+    //ver 0.09 :ブラシ(bk83)　25/4/30
+
+    window.onload = init;
+    window.addEventListener("resize", () => {
+        setTimeout(SheetRedraw, 200); // ← iPad用 遅延を入れてサイズが落ち着いてから再描画
+    });
+    $Title.onclick = Reload;
+    sideview.onclick = sideviewclick;
+    function Reload(){
+        window.location.reload(true);
+    }
+    const pl = planck;
+    // セットアップ
+    const world = new pl.World({
+        gravity: pl.Vec2(0, 0)  // 無重力に設定！（カーリングっぽくするため）
+    });
+    const stoneBodies = [];
+
+    let DragAble=false;
+    var wiwidth=window.innerWidth;
+    var wiheight=window.innerHeight;
+    var target,mousePos,guideY;
+    let lastX = 0, lastY = 0, lastTime = 0;
+    let sweeping = false;
+    let lastSweepX, lastSweepY;
+    const sweepParameter=0.003;     //スイープした時の加速度
+    const timeLoop=16;              //ストーン移動の描画タイミング
+    const friction=0.995;           // 摩擦係数
+    const weight=100;               //速度の重みつけ
+    const pArea = document.getElementById("pnlArea");
+    const exSheet=document.getElementById("expansionSheet");                    //拡大シート
+    const exCon = document.getElementById("containerOfExpansionSheet");         //拡大、ストーンを置くdiv
+    const exContainer = document.querySelector("div#scrollerOfExpansionSheet"); //拡大、スクロールバーdiv
+    const whSheet = document.getElementById("wholeSheet");                      //全体シート
+    const whCon=document.getElementById("containerOfWholeSheet");               //全体のストーンを置く
+    const whGuide=document.getElementById("scrollGuide");
+    const detail=document.getElementById("detail");
+    //カーリングシートのフィート各サイズ
+    const sheetWidth = 15;                  //シートのサイズ
+    const sheetHeight = 146;
+    const houseCenter = 57;               //シート中心からハウスの中芯まで(ft)
+    const houseRadius = 12/2;             //ハウスの半径
+    const houseRad2 = 8/2;
+    const houseRad3 = 4/2;
+    const houseRad4 = 1/2;
+    const backLine = 57+6;                  //BL バックライン
+    const hackLine = 57+12;                 //HA ハックライン
+    const hogLine = 57-21;                  //HOL ホグライン 37
+    const stoneRadius = 36/12/2/Math.PI;    //ストーン円周=36inc 半径=1.432ft;
+    let points = [];                        //スマホのタッチの軌跡
+    var onGuide=false;
+    let linkage=true;                       //ストーンの移動に合わせてスクロールする
+    let movingStones=[];
+    const Linkage = document.getElementById("chkLinkage");
+    Linkage.checked=linkage;
+    let StartingSide=0;
+    let isDragging=0;                       //ドラッグ中フラグ 1:マウス 2:タブレット指タッチ
+    let beforeX,beforeY,dragStartX,dragStartY,dragEndX,dragEndY,dragStartTime;
+    let touchStartX,touchEndX,touchStartY,touchEndY;
+    let dragTarget=null;                    //現在のストーン
+    let rubber=null,rubberWing;             //ラバーバンドの開始位置
+    let side =0;                            //先攻後攻 サイド 0=上の行 1=下の行
+    let sideWidth=300;                      //サイドバーの幅
+    let firstMove=0;                        //先攻 0or1
+    document.oncontextmenu = function () {return false;} //右ボタンのポップアップを消す
+    const MaxStone = 8;                     //チームが持つストーンの数8個
+    var cStone=[];                          //ストーンクラスの配列
+    let EndNum=1;                           //Endの番号
+    let LastEnd=8;                          //endの数
+    let lane=1;                             //x投目
+    let cMember;                            //競技者
+    let Stones;                             //ストーンのエレメント配列
+    let guideMax;
+    let sidebarEl;
+    let borderEl;
+    let detailEl;
+    let blinkInterval;
+    let isScrubbing = false;
+    let mousePosition = { x: 0 };
+    const sectionMinWidth = 150 // px
+    function init(){
+        var scwidth=screen.availWidth;
+        var scheight=screen.availHeight;
+        pArea.style.width = wiwidth*.97;
+        pArea.style.height = wiheight*.96;
+
+        let wg=whSheet.getBoundingClientRect();
+        let eg=exSheet.getBoundingClientRect();
+        whGuide.style.left = wg.left+"px";
+        whGuide.style.top = wg.top;
+        whGuide.style.width= wg.width;
+        whGuide.onmousedown = guidemousedown;
+        whGuide.onmousemove = guidemousemove;
+        whGuide.onmouseup = guidemouseup;
+        whGuide.onpointermove = GuideMove;
+
+        sidebarEl= document.getElementById("sidebar");
+        borderEl=document.getElementById('border');
+        detailEl= document.getElementById("detail");
+        borderEl.addEventListener('pointerdown', () => { isScrubbing = true; });
+        document.addEventListener('pointermove', (e) => {
+            if (isScrubbing) {
+                e.preventDefault();
+                handlePointerMove(e);
+            }
+        }, { passive: false });
+        // Safari対策：touchmoveも抑制
+        document.addEventListener('touchmove', (e) => {
+            if (isScrubbing) e.preventDefault();
+        }, { passive: false });
+        document.addEventListener('pointerup', () => {isScrubbing = false; });
+        sidebarEl.style.width=sideWidth +'px';
+        sidebarEl.style.display="none";
+        borderEl.style.display="none";
+        document.addEventListener('pointerleave', () => isScrubbing = false);
+        guideMax=exContainer.scrollHeight -exContainer.clientHeight;
+        document.getElementById("Start").addEventListener('click', gameBegin);
+        document.addEventListener( 'DOMContentLoaded', () => {
+            exContainer.addEventListener('touchmove',noscroll, {passive:false});
+            function noscroll ( e ) {
+                e.preventDefault();
+            }
+        })
+        Linkage.addEventListener("click", (e) => {
+            linkage=Linkage.checked;
+        });
+        for(i=0; i<MaxStone*2; i++){
+            //ストーンの読み込み
+            let StoneSImg = document.createElement("img");
+            let StoneLImg = document.createElement("img");
+            if(i<MaxStone){
+                StoneSImg.src="stoneR.png";
+                StoneLImg.src="stoneR.png";
+            }else{
+                StoneSImg.src="stoneY.png";
+                StoneLImg.src="stoneY.png";
+            }
+            StoneSImg.className = "stoneSmall"
+            StoneSImg.alt="stone";
+            StoneSImg.id="stoneS"+i;
+            StoneSImg.style.display = "block";
+            StoneSImg.style.position = "absolute";
+            whSheet.parentElement.appendChild(StoneSImg);
+            StoneLImg.className = "stoneLarge";
+            StoneLImg.alt="stone";
+            StoneLImg.id="stoneL"+i;
+            StoneLImg.style.display = "block";
+            StoneLImg.style.position = "absolute";
+            exSheet.parentElement.appendChild(StoneLImg);
+            GuideAdjust();        
+        }
+        StoneDragSetting("stoneLarge");
+        StoneDragSetting("stoneSmall");
+        //全体シートの描画
+        let sheetPos = longSheet(pArea.offsetHeight-50);
+        let wd = pArea.clientWidth;
+        wd = wd -sheetPos.width-60; 
+        //拡大シートの描画
+        exContainer.addEventListener('mousedown', function(e) {
+            e.preventDefault();
+        });
+        exContainer.addEventListener('touchstart', function(e) {
+            e.preventDefault();
+        }, { passive: false });
+        exContainer.addEventListener('touchmove', function(e) {
+            e.preventDefault();
+        }, { passive: false });
+        exSheet.addEventListener('mousemove', (e) => {
+            updateCursor(e.offsetX, e.offsetY);
+        });
+        document.getElementById("detail").style.width=wd;
+        exCon.style.width= wd;
+        exCon.style.height= wd*10;
+        exSheet.style.width= wd;
+        exSheet.style.height=wd*10;
+        exSheet.width= wd;
+        exSheet.height=wd*10;
+        let closeupPos = closeupSheet(exSheet);
+        StoneLayout();
+        if(exContainer.clientHeight < exSheet.height){
+            //一番下にスクロールする
+            exContainer.scrollTop = exSheet.height;
+        }
+        exContainer.addEventListener("scroll", (event) => {
+            if(onGuide==false){
+                GuideAdjust();
+            }
+        }, {passive: true});
+        StoneAdjust(whSheet, "stoneSmall");
+        StoneAdjust(exSheet, "stoneLarge");
+        memberView();
+    }
+
+    //ゲーム開始 赤先攻
+    function gameBegin(){
+        StoneLayout()
+        StoneAdjust(whSheet, "stoneSmall");
+        StoneAdjust(exSheet, "stoneLarge");
+        // EndNum=1;
+        side=firstMove;
+        lane=1;
+        MovableSide(side);
+        DragAble=true;
+        currentMessage();
+    }
+    //1投擲終わるたびに　投げる側の表示
+    function sideChange(){
+        scoreBackColor(side+1,EndNum,"");
+        side = 1-side;
+
+        if(firstMove===side){
+            //次のlane投擲
+            lane++;
+            if(lane>MaxStone){
+                EndChange();
+                return
+            }
+        }
+        currentMessage();
+        MovableSide(side);
+    }
+    function currentMessage(){
+        scoreBackColor(side+1,EndNum,side==0?"red":"yellow");
+        ShowMessage("END:"+EndNum+ " 先攻:"+ cMember.getName(firstMove)+ " " +cMember.getName(side)+ ":"+lane+"投目")
+    }
+
+    //１エンド終了、
+    function EndChange(){
+        //攻守交替 得点計算、END終了判定
+        console.log(EndNum+" End Finish ")
+        firstMove = ScoreCount(side, endAfterScoring);
+    }
+
+    function ScoreCount(side, callback) {
+        let inHouse = [];
+        for (const s of cStone) {
+            let d = s.getDistance();
+            if (d < houseRadius) {
+                inHouse.push({ team: s.index < MaxStone ? 0 : 1, dist: d });
+            }
+        }
+
+        if (inHouse.length === 0) {
+            // ハウスにストーンなし
+            ShowMessage("得点なし 引き分け");
+            setTimeout(() => {
+                scoreWrite(EndNum, 1, 0);
+                scoreWrite(EndNum, 2, 0);
+                sideChange();
+            }, 2000);
+            return firstMove;
+        }
+
+        // ハウスにあるストーンあり
+        inHouse.sort((a, b) => a.dist - b.dist);
+        const winningTeam = inHouse[0].team;
+        const losingClosestDistance = inHouse.find(s => s.team !== winningTeam)?.dist ?? Infinity;
+
+        let score = 0;
+        for (const s of inHouse) {
+            if (s.team === winningTeam && s.dist < losingClosestDistance) {
+                score++;
+            }
+        }
+
+        ShowMessage(`${cMember.getName(winningTeam)}が${score}点獲得！`);
+
+        setTimeout(() => {
+            // 2秒後にスコア記入
+            cMember.total[winningTeam] += score;
+            scoreWrite(EndNum, winningTeam + 1, score);
+            scoreWrite(EndNum, 1 - winningTeam + 1, 0);
+            scoreWrite(11, winningTeam + 1, cMember.total[winningTeam]);
+            scoreWrite(11, 1 - winningTeam + 1, cMember.total[1 - winningTeam]);
+            if (callback) callback();  
+        }, 2000);
+
+        return winningTeam;
+    }
+    function endAfterScoring() {
+        if (EndNum > LastEnd) {
+            let Win = "勝者＝" + cMember.winner("name");
+            ShowMessage("ゲーム終了 " + Win);
+        } else {
+            ShowMessage("エンド終了");
+            NextEnd();
+        }
+    }
+
+    function NextEnd(){
+        EndNum++;
+        console.log(EndNum+"のエンド");
+        StoneLayout()
+        StoneAdjust(whSheet, "stoneSmall");
+        StoneAdjust(exSheet, "stoneLarge");
+        side=firstMove;
+        lane=1;
+        MovableSide(side);
+        DragAble=true;
+        currentMessage();
+    }
+
+    function scoreWrite(colNum,rowNum,Point){
+        //得点表に得点の書き込み
+        var scoreEl = document.getElementById("score");
+        scoreEl.rows[rowNum].cells[colNum].innerHTML = Point;
+    }
+    function scoreBackColor(rowNum, colNum, color) {
+        var scoreEl = document.getElementById("score");
+        // console.log("scorebackcolor "+colNum+ "::"+rowNum);
+        if (scoreEl && scoreEl.rows[rowNum] && scoreEl.rows[rowNum].cells[colNum]) {
+            scoreEl.rows[rowNum].cells[colNum].style.backgroundColor = color;
+        } else {
+            console.error(`セルが見つかりません row=${rowNum} col=${colNum}`);
+        }
+    }
+
+    function MovableSide(side){
+        //攻守交替
+        for(let i=0; i<cStone.length; i++) {
+            if(i<MaxStone){
+                if(side==0){
+                    //動かせるチーム
+                    if(cStone[i].life==0){
+                        cStone[i].life=1; //可動
+                    }
+                }else{
+                    //動かせないチーム
+                    if(cStone[i].life==1){
+                        cStone[i].life=0;
+                    }
+                }
+            }else{
+                if(side==1){
+                    if(cStone[i].life==0){
+                        cStone[i].life=1;
+                    }
+                }else{
+                    if(cStone[i].life==1){
+                        cStone[i].life=0;
+                    }
+                }
+            }
+        };
+    }
+    function PlayCurling(){
+        //メンバー設定
+        let nameA=txtNameA.value;
+        let nameB=txtNameB.value;
+        if(nameA=="") nameA="赤";
+        if(nameB=="") nameB="黄";
+        cMember = new clsMember(nameA,nameB);
+        document.getElementById("login").style.display='none';
+        scoreWrite(0,1,cMember.getName(0));
+        scoreWrite(0,2,cMember.getName(1));
+        ShowMessage("開始ボタンを押してください。")
+    }
+    function topMost(){
+        exContainer.scrollTop=0;
+        Linkage.checked=false;
+    }
+    function bottomMost(){
+        exContainer.scrollTop=exCon.offsetHeight;
+        Linkage.checked=false;
+    }
+    //ストーンのドラッグ設定
+    function StoneDragSetting(stoneType){
+        Stones = document.getElementsByClassName(stoneType);
+        for(let i=0; i<MaxStone*2; i++){
+            let stnEl=Stones[i];
+            stnEl.onpointerdown = stoneMouseDown;
+            stnEl.addEventListener('touchstart', function (e) {
+                if(DragAble){
+                    //ShowMessage("this="+this.id);
+                    let ix=stnEl.id.slice(6);
+                    if (e.touches.length === 1) {
+                        if(cStone[ix].life!==1){
+                            idDragging=0;
+                            ShowWarning("移動できません");
+                            return;
+                        }
+                        dragTarget = this;
+                        isDragging = 2;
+                        const touch = e.touches[0];
+                        const containerRect = exContainer.getBoundingClientRect();
+                        const imgRect = dragTarget.getBoundingClientRect();
+                        //ストーンの中のタッチの位置
+                        const StoneRect = this.getBoundingClientRect();
+                        touchStartX = touch.clientX - containerRect.left;
+                        let wr=touchStartX-dragTarget.offsetLeft+dragTarget.offsetWidth/2;
+                        touchStartY = touch.clientY - containerRect.top;
+                        points = [];
+                        points.push({x:touchStartX,y:touchStartY,t:performance.now()})
+                        touchStartTime = performance.now(); // 現在の時間をミリ秒で取得
+                    }
+                }
+            }, { passive: false });
+        }
+    }
+    document.onpointermove = stoneMouseMove;
+    document.onmouseup = stoneMouseUp;
+    //マウスによるストーンの移動開始
+    function stoneMouseDown(e){
+        clearInterval(blinkInterval);
+        if(DragAble){
+            dragTarget = this;
+            let ix= dragTarget.id.slice(6);
+            if(cStone[ix].life===1){
+                isDragging = 1;
+                dragStartX = e.clientX;
+                dragStartY = e.clientY;
+                dragStartTime = performance.now(); // 現在の時間をミリ秒で取得
+                beforeX = this.offsetLeft;
+                beforeY = this.offsetTop;
+                rubber=null;
+                cStone[ix].setFeet(dragTarget);
+                if(e.button==2){
+                    const canCoords= getCanvasCoordinates(exSheet, e.clientX, e.clientY);
+                    //ラバーバンドの開始
+                    // mousePos={x:canCoords.x*.9, y:canCoords.y*.974};
+                    mousePos={x:canCoords.x, y:canCoords.y};
+                    rubberWing=e.offsetX;
+                    rubber= mousePos;
+                    closeupSheet();
+                }
+            }else{
+                isDragging=0;
+                ShowWarning("移動できません")
+            }
+        }
+    }
+    //マウスによるストーンのドラッグ移動
+    function stoneMouseMove(e){
+        if (isDragging === 0) {
+            return; // ← これ追加！！
+        }
+        if(isDragging==1){
+            if(rubber){
+                //右ボタン ラバーバンド
+                const canCoords= getCanvasCoordinates(exSheet, e.clientX, e.clientY);
+                mousePos={x:canCoords.x, y:canCoords.y};
+                closeupSheet();
+            }else{
+                //左ボタン ストーンの移動
+                let tg = dragTarget.getBoundingClientRect();
+                dragTarget.style.top  = (dragTarget.offsetTop + e.movementY) + 'px';
+                dragTarget.style.left = (dragTarget.offsetLeft + e.movementX) + 'px';
+                dragTarget.style.position = 'absolute';
+                dragTarget.draggable      = false;
+                dragTarget.setPointerCapture(e.pointerId);
+                let sheet = dragTarget.parentElement;
+                let ix= dragTarget.id.slice(6);   
+                cStone[ix].setFeet(dragTarget,sheet)
+                if(cStone.y>sheetHeight/2+hogLine){
+                    //ホッグライン通過 失格
+                    ShowMessage("ホッグライン通過 失格");
+                    //ホッグラインの手前でリリースしないといけない
+                }
+                if(beforeY<e.clientY){
+                    //ストーンを手前に引き戻すとそこが開始点になる
+                    dragStartX = e.clientX;
+                    dragStartY = e.clientY;
+                    dragStartTime = performance.now();
+                }
+                beforeX=e.clientX;
+                beforeY=e.clientY;
+                //違うシートのストーンを動かす
+                anotherStone(dragTarget);
+            }
+        }
+    }
+    function stoneMouseUp(e){
+        if(isDragging==1){
+            let dragEndTime = performance.now();
+            let dragDuration;       // ドラッグの時間
+            let dragDistanceX;      // ドラッグのX方向の距離
+            let dragDistanceY;      // ドラッグのY方向の距離
+            let dragDistance;
+            let initialAngle;       //投擲角度
+            let initialSpeed;       //投擲速度
+            let initialRotation;    //回転速度
+            if(rubber){
+                //ラバーバンド
+                if(rubber.y<e.clientY){
+                    //後方に線を引くと中止
+                }else{
+                    dragDistanceX = mousePos.x-rubber.x;
+                    dragDistanceY = mousePos.y-rubber.y;
+                    dragDistance = Math.hypot(dragDistanceX,dragDistanceY)
+                    // initialAngle=Math.atan2(dragDistanceY,dragDistanceX);
+                    initialAngle = Math.atan2(dragDistanceY, dragDistanceX);
+                    initialSpeed=dragDistance / 2000 ;
+                    initialRotation=(rubberWing/dragTarget.offsetWidth-0.5)*5;
+                    rubber=null;
+                    closeupSheet();
+                    throwStone(initialAngle, initialSpeed, initialRotation, dragTarget);
+                }
+            }else{
+                //リリース時の方向と速度
+                dragEndX = e.clientX;
+                dragEndY = e.clientY;
+                dragEndTime = performance.now();
+                dragDuration = dragEndTime - dragStartTime; 
+                dragDistanceX = dragEndX - dragStartX;      
+                dragDistanceY = dragEndY - dragStartY;
+                dragDistance = Math.hypot(dragDistanceX, dragDistanceY);
+                initialAngle=Math.atan2(dragDistanceY,dragDistanceX);
+                initialSpeed=dragDistance/dragDuration;
+                initialRotation=(e.offsetX/dragTarget.offsetWidth-0.5)*2;  //回転 -1~+1
+                throwStone(initialAngle, initialSpeed, initialRotation, dragTarget);
+            }
+            isDragging = 0;
+            rubber = null;
+            dragTarget = null;
+        }
+    }
+    function getCanvasCoordinates(canvas, clientX, clientY) {
+        const rect = canvas.getBoundingClientRect(); // キャンバスの位置とサイズ
+        return {
+            x: clientX - rect.left,
+            y: clientY - rect.top
+        };
+    }
+    document.addEventListener('touchmove', (e) => {
+        //タッチドラッグ移動
+        if (isDragging==2){
+            if(e.touches.length === 1) {
+                //指1本でドラッグ
+                e.preventDefault();
+                let newX,newY;
+                const touch = e.touches[0];
+
+                const sheet = dragTarget.parentElement;
+                //const ctx = sheet.getContext("2d");
+                const containerRect = sheet.getBoundingClientRect();
+                let ix= dragTarget.id.slice(6);
+                const StoneRect = dragTarget.getBoundingClientRect();
+                
+                newX = touch.clientX- containerRect.left;
+                newY = touch.clientY- containerRect.top;
+                // 描画（参考用）
+                    // const ctx = exSheet.getContext("2d");
+                    // ctx.clearRect(0, 0, exSheet.width, exSheet.height);
+                    // ctx.beginPath();
+                    // ctx.moveTo(points[0].x - exSheet.offsetLeft, points[0].y - exSheet.offsetTop);
+                    // for (let i = 1; i < points.length; i++) {
+                    //     ctx.lineTo(points[i].x - exSheet.offsetLeft, points[i].y - exSheet.offsetTop);
+                    // }
+                    // ctx.stroke();
+                //ストーンの移動
+                dragTarget.style.left = newX + 'px';
+                dragTarget.style.top = newY + 'px';
+                dragTarget.style.position = 'absolute';
+                dragTarget.draggable      = false;
+                cStone[ix].setFeet(dragTarget);
+                if(cStone[ix].y>sheetHeight/2+hogLine){
+                    //ホッグライン通過 失格
+                    ShowMessage("ホッグライン通過/失格");
+                }
+                if(beforeY<newY){
+                    //ストーンを手前に引き戻すとそこが開始点になる
+                    points.splice(0) //配列クリア
+                    touchStartX = newX;
+                    touchStartY = newY;
+                    touchStartTime = performance.now();
+                }
+                points.push({x:newX,y:newY,t:performance.now()})
+                touchEndX=newX;
+                touchEndY=newY;
+                stoneMouseMove(e);
+                beforeX=newX;
+                beforeY=newY;
+            }else if(e.touches.length === 2) {
+                //二本指ならラバーバンド
+                rubber=true;
+            }
+        }    
+    }, { passive: false });
+    document.addEventListener('touchend', (e) => {
+        //タブレットの指タッチリリース
+        if(isDragging==2){
+            const imgRect = dragTarget.getBoundingClientRect();
+            if(points.length<3) return;
+            let lp = points.length-1;
+            let s = 3;
+            if(points.length<s) s=points.length-1;
+            let beginAngle = Math.atan2(points[s].y-points[1].y, points[s].x-points[1].x);
+            var tx="";
+            let endAngle=Math.atan2(points[lp].y-points[lp-s].y,points[lp].x-points[lp-s].x);
+            let sn=Math.sign(points[s].x-points[1].x);
+            touchStartX=points[lp-s].x;
+            touchStartY=points[lp-s].y;
+            touchStartTime=points[lp-s].t;
+            let touchEndTime = performance.now();
+            let dragDuration = touchEndTime - touchStartTime;                     // ドラッグの時間
+            let dragDistanceX = touchEndX - touchStartX;                          // ドラッグのX方向の距離
+            let dragDistanceY = touchEndY - touchStartY;                          // ドラッグのY方向の距離
+            let dragDistance = Math.hypot(dragDistanceX, dragDistanceY)/2;        // 実際に移動した距離
+            let initialAngle=Math.atan2(dragDistanceY,dragDistanceX);           //投擲角度
+            let initialSpeed=dragDistance/dragDuration/3;                      //投擲速度
+            let initialRotation=0;                                              //回転速度
+            beginAngle= Math.abs(beginAngle)+1.5;
+            beginAngle=beginAngle*sn/3
+            initialRotation=(beginAngle);
+            throwStone(initialAngle, initialSpeed, initialRotation, dragTarget);
+            isDragging = 0;
+            dragTarget = null;
+            points.splice(0);
+        }
+    });
+   
+    //再描画
+    function SheetRedraw(){
+        wiwidth=window.innerWidth;
+        wiheight=window.innerHeight;
+        pArea.style.height=wiheight-50 +"px";
+        pArea.style.top=50 + "px";
+        pArea.style.left=100+"px";
+        pArea.style.width=wiwidth*.97;
+        pArea.style.height=wiheight*.99;
+        let sheetPos = longSheet();//全体シート
+        let wd = pArea.clientWidth;
+        if(sidebarEl.style.display=="block"){
+            wd -= parseInt(sidebarEl.style.width);
+        }
+        wd = wd -whSheet.width-50; 
+        exSheet.width= wd;
+        exCon.width= wd;
+        exContainer.width= wd;
+        document.getElementById("detail").style.width=wd;
+        exCon.style.height= wd*10;
+        exSheet.style.height=wd*10;
+        //スクロールガイドの
+        GuideAdjust();
+        guideMax = exContainer.scrollHeight-exContainer.clientHeight;
+        let closeupPos = closeupSheet();//拡大シート
+        StoneAdjust(whSheet, "stoneSmall");
+        StoneAdjust(exSheet, "stoneLarge");
+        memberView();
+    }
+
+    //メンバー入力画面の位置調整
+    function memberView(){
+        let LoginPage = document.getElementById("login");
+        if(LoginPage.style.display!='none'){
+            LoginPage.style.visibility="hidden";
+            LoginPage.style.display = "block";
+            let ag=pArea.getBoundingClientRect()
+            let lg=LoginPage.getBoundingClientRect()
+            LoginPage.style.left = ((ag.width-lg.width)/2)+'px';
+            LoginPage.style.top = ((ag.height-lg.height)/3)+'px';
+            LoginPage.style.display="block";
+            LoginPage.style.visibility="visible";
+        }
+    }
+    //長いシート（左側）
+    function longSheet(){
+        let sheetRec= new DOMRect;
+        sheetRec.x = 0;
+        sheetRec.y = 0;
+        sheetRec.height = pArea.offsetHeight-20;
+        sheetRec.width = sheetRec.height/10;
+        let wg=whSheet.getBoundingClientRect()
+        whGuide.style.left = wg.left+"px";
+        whGuide.style.top = wg.top;
+        whGuide.style.width=wg.width;
+        whSheet.parentElement.style.width=sheetRec.clientWidth;
+        DrawSheet(whSheet, sheetRec, "stoneSmall");
+        var children = document.getElementById("scrollerOfExpansionSheet").childNodes;
+        return whSheet.getBoundingClientRect();
+    }
+ 
+    //拡大シート
+    function closeupSheet(){
+        var cuWidth = exSheet.width;
+        exCon.style.left=0;
+        exSheet.style.left=0;
+        let sheetRec = new DOMRect;
+        sheetRec.y = 0;
+        sheetRec.x = 0;
+        sheetRec.width = cuWidth;
+        sheetRec.height = sheetRec.width*10;
+        DrawSheet(exSheet,sheetRec,"stoneLarge");
+    }
+
+    ///カーリングシートの描画
+    function DrawSheet(sheet,sheetRec,stoneName){
+        let scale= getScale(sheet);
+        let hc = houseCenter *scale;  //シート中央からハウスの中心までの距離(ft)
+        let hr = houseRadius*scale;   //ハウスの半径
+        let bl = backLine * scale;    //シート中央からバックラインまでの距離
+        let hl = hackLine *scale;     //シート中央からハックラインまでの距離
+        let hg = hogLine *scale;      //シート中央からホッグラインまでの距離
+        // sheet.width = sheet.width; //消去
+        let parent=sheet.parentElement;
+        parent.style.top= sheetRec.y;
+        parent.style.left=sheetRec.x;
+        parent.
+        width=sheetRec.width;
+        parent.height=sheetRec.height;
+        sheet.width = sheetRec.width;
+        sheet.style.width = sheetRec.width;
+        sheet.height = sheetRec.height;
+        sheet.style.height=sheetRec.height
+
+        const ctx = sheet.getContext("2d");
+        var sh =sheetRec.height/2; //縦中央値
+        ctx.lineWidth = 1;
+        ctx.fillStyle= 'lightgreen';
+        ctx.fillRect(0,sh+hc,sheetRec.width,hg-hc);               //FGZ フリーガードゾーン
+        ctx.fillStyle='white';
+        ctx.strokeStyle = 'black';
+        ctx.lineWidth = 1;
+        drawHouse(ctx,(sheetRec.width)/2,sh-hc,scale);                      //ハウス
+        drawHouse(ctx,(sheetRec.width)/2,sh+hc,scale);
+        lineDraw(ctx,0,sh-hc, sheetRec.width, sh-hc);                       //TL ティーライン
+        lineDraw(ctx,0,sh+hc, sheetRec.width, sh+hc);                       //TL
+        ctx.strokeStyle = "gray";
+        lineDraw(ctx,0,sh-bl, sheetRec.width, sh-bl);                       //BL バックライン
+        lineDraw(ctx,0,sh+bl, sheetRec.width, sh+bl);                       //BL
+        lineDraw(ctx,sheetRec.width/2,sh-hl, sheetRec.width/2, sh+hl);      //CLセンターライン(縦)
+        lineDraw(ctx,0, sh, sheetRec.width, sh,4);                          //センター（横）
+        ctx.lineWidth = 5;
+        lineDraw(ctx,0,sh-hg, sheetRec.width, sh-hg);                        //HOL ホッグライン
+        lineDraw(ctx,0,sh+hg, sheetRec.width, sh+hg);                        //HOL 
+        lineDraw(ctx,sheetRec.width/2-hr/6,sh-hl, sheetRec.width/2+hr/6, sh-hl);    //HL ハックライン
+        lineDraw(ctx,sheetRec.width/2-hr/6,sh+hl, sheetRec.width/2+hr/6, sh+hl);    //HL
+        if(rubber){
+            ctx.beginPath();
+            ctx.moveTo(rubber.x, rubber.y);
+            ctx.lineTo(mousePos.x, mousePos.y);
+            ctx.stroke();
+        }
+    }
+    //スクロールに合わせてガイドを移動する
+    function GuideAdjust(){
+        var wg=whSheet.getBoundingClientRect();
+        var hi= wg.height*(exContainer.offsetHeight/exCon.offsetHeight);
+        whGuide.style.height=hi;
+        var si = wg.height*(exContainer.scrollTop/exCon.offsetHeight)+wg.top;
+        whGuide.style.top=si;
+    }
+    //ガイドに合わせてスクロールさせる
+    function ScrollAdjust(guideTop){
+        var scrollMax=exContainer.scrollHeight-exContainer.clientHeight;
+        var wg=whSheet.getBoundingClientRect();
+        var gg=whGuide.getBoundingClientRect();
+        var guideMax=wg.height-gg.height;
+        var scrolltop=((guideTop-wg.top)/wg.height)*scrollMax;
+        exContainer.scrollTop = scrolltop;
+    }
+    //ガイドをマウスでドラッグした
+    function GuideMove(){
+        if(event.buttons){
+            var tg = this.getBoundingClientRect();
+            var ws = whSheet.getBoundingClientRect();
+            if(tg.top<ws.top){
+                this.style.top = ws.top;
+            }else if(tg.top-ws.top-10>ws.height-tg.height){
+                //this.style.top = ws.height-ws.top;
+            }else{
+                let v=tg.top + event.movementY;
+                this.style.top      = v + 'px';
+                this.style.position = 'absolute';
+                this.draggable      = false;
+                this.setPointerCapture(event.pointerId);
+                ScrollAdjust(v);
+            }
+        }
+    }
+    function guidemousedown(e){
+        onGuide=true;
+    }
+    function guidemousemove(e){
+        //拡大シートのスクロール
+        var mouseY = !isNaN(e.offsetY) ? e.offsetY : e.touches[0].clientY;  
+        if(target){
+        var dy= mouseY-mousePos;
+        var y=parseInt(whGuide.style.top);
+        whGuide.style.top=(y+dy) + 'px';
+        mousePos=mouseY;
+        }
+    }
+    function guidemouseup(e){
+        onGuide=false;
+    }
+    function sideviewclick(){
+        let lblSideview=document.getElementById("sideview");
+        if(lblSideview.innerText=="＞＞"){
+            lblSideview.innerHTML="＜＜";
+            sideWidth=parseInt(sidebarEl.style.width);
+            borderEl.style.display ="none";
+            sidebarEl.style.display="none";
+        }else{
+            lblSideview.innerHTML="＞＞";
+            borderEl.style.display ="block";
+            sidebarEl.style.display="block";
+            var exw= pArea.offsetWidth-whSheet.width-sideWidth-borderEl.offsetWidth;
+            detailEl.style.width = exw+'px';
+            sidebarEl.style.width = sideWidth+'px';
+            // sidebarEl.style.left=(pArea.offsetWidth-sideWidth-500) +'px';
+            var lw = pArea.offsetWidth;
+            lw -= sideWidth;
+            lw -=20; //なぜか狂う？？？？調整
+            borderEl.style.left = lw;
+            borderEl.style.top = pArea.offsetTop;
+            borderEl.style.height = pArea.offsetHeight;
+        }
+        SheetRedraw();
+    }
+    function StoneLayout(){
+        //ストーンの初期配置(絶対値フィート)
+        //ピクセル配置はstoneAdjust(sheet)を使う
+        let stx;
+        let sty;
+        for(var i=0; i<MaxStone*2; i++){
+            if(i<MaxStone){
+                //赤
+                stx = stoneRadius;
+                sty = sheetHeight-stoneRadius*(MaxStone-i)*2
+                cStone[i]=new clsStone(i,stx,sty,"red",stoneRadius);
+            }else{
+                //黄
+                stx= sheetWidth-stoneRadius*2;
+                sty= sheetHeight-stoneRadius*(MaxStone*2-i)*2;
+                cStone[i]=new clsStone(i,stx,sty,"yellow",stoneRadius);
+            }
+        }
+    }
+
+    function throwStone(iniDirection, iniSpeed, iniRotation, stoneEl) {
+        //ストーン投擲と移動
+        // console.log("first throwstone direction="+ iniDirection, "inispeed="+iniSpeed, "inirotation="+iniRotation);
+        let sheet = stoneEl.parentElement;
+        let sign = Math.sign(iniDirection);
+        let direction = Math.abs(iniDirection);     //角度
+        let speed = iniSpeed *weight;               //速度
+        let rotation = -iniRotation;                //回転
+        let ix = stoneEl.id.slice(6);               //ストーン番号
+        var currentLeft = parseFloat(stoneEl.style.left);
+        var currentTop = parseFloat(stoneEl.style.top);
+        // console.log("speed="+speed)
+        if(speed<15 || direction>2 || direction<1){
+            ShowWarning("s="+financial( speed,3)+ " a="+financial( direction,3))
+            return;
+        }
+        direction*=sign;
+        stoneEl.style.left = currentLeft + 'px';
+        stoneEl.style.top = currentTop + 'px';
+        cStone[ix].setFeet(stoneEl);
+        let spin=0; // 回転数
+        DragAble=false;
+        ShowMessage("ストーン走行中");
+        // console.log("before setsituation-speed="+speed,"direction="+direction);
+        cStone[ix].setSituation(stoneEl, speed,direction,rotation);
+        cStone[ix].life=2;
+        // setCursorToBrush();
+        shootingStone = cStone[ix];
+        animate();
+        sendStone();
+        DragAble=true;
+    }
+
+    //サーバーにストーン投擲情報を送る
+    function sendStone(cStn){
+        const data = {
+            ix: cStn.index,
+            x: cStn.getX(),
+            y: cStn.getY(),
+            vx: cStn.getVx(),
+            vy: cStn.getVy(),
+            spin: cStn.spin ?? 0
+        };
+        socket.emit("stoneThrow", data);
+    }
+    // 受信してストーンを再現
+    socket.on('stoneUpdate', (data) => {
+        const cStn = cStone[data.ix];
+        cStn.body.setPosition(planck.Vec2(data.x, data.y));
+        cStn.body.setLinearVelocity(planck.Vec2(data.vx, data.vy));
+        cStn.spin = data.spin ?? 0;
+        cStn.life = 2;
+        animate();
+    });
+
+    let shootingStone;
+    let animationId;
+    function animate() {
+        world.step(1/60);
+
+        let allStopped = true;
+        let message=null;
+        let lived=0;
+        for(i=0; i<cStone.length; i++){
+            if(cStone[i].life==2 || cStone[i].live==3) lived++;
+        }
+        for (const cStn of cStone) {
+            if (cStn.life === 2 || !cStn.body) {
+                let stoneEl = document.getElementById(`stoneL${cStn.index}`);
+                let speed= cStn.getSpeed();        
+                let p = cStn.getPixel(exSheet);
+                stoneEl.style.left = p.x + 'px';
+                stoneEl.style.top = p.y + 'px';
+                stoneEl.style.transform = `rotate(${cStn.body.getAngle()}rad)`;
+                stoneEl = document.getElementById(`stoneS${cStn.index}`);
+                if(linkage){
+                    if(cStn == shootingStone){
+                        exContainer.scrollTop = p.y -exContainer.offsetHeight/2;
+                    }
+                }
+                p = cStn.getPixel(whSheet);
+                stoneEl.style.left = p.x + 'px';
+                stoneEl.style.top = p.y + 'px';
+                stoneEl.style.transform = `rotate(${cStn.body.angle}rad)`;
+                if (cStn.getSpeed() < 0.002) {
+                    //ストーン停止
+                    if(cStn.getY()>sheetHeight/2-hogLine){
+                        if(cStn===shootingStone) message="ホッグライン未達/失格";
+                        cStn.life=23;
+                        hideStone(cStn.index);
+                    }else{
+                        let dist = cStn.getDistance();
+                        if(dist<houseRadius){
+                            if(cStn===shootingStone) message="ハウス内! ティから"+financial(dist,2)+"feet";
+                        }else{
+                            if(cStn===shootingStone) message="ゴール ティから"+financial(dist,1)+"feet";
+                        }
+                    }
+                    lived--;
+                }else if(cStn.getX()<0 || cStn.getX()>sheetWidth){
+                    cStn.life=21;
+                    if(cStn===shootingStone) message="サイドアウト/失格";
+                    hideStone(cStn.index);
+                    lived--;
+                }else if(cStn.getY() < 0){
+                    cStn.life=21;
+                    if(cStn===shootingStone) message="オーバー/失格";
+                    hideStone(cStn.index);
+                    lived--;
+                }
+                //カーブさせる
+                // console.log("vy="+cStn.getVy())
+                if(cStn.getVy()<-0.1){
+                    let spin = cStn.getSpinSpeed();//回転数
+                    //speed=30~0 spin=左-2~-0 右2～0
+                    let curve=0;
+                    // console.log("speed="+financial(speed,2) +" spin="+financial(spin,2))
+                    if(speed>2 && speed<10 ){
+                        if(Math.abs(spin)<0.05){
+                            //回転していないときランダム
+                            curve = (Math.random()-.5)/6000;
+                        }else{
+                            curve = speed/1000 * -spin*2;
+                        }
+                        // console.log("curve="+financial(curve,2))
+                    }
+                    cStn.setVxy(cStn.getVx()-curve, cStn.getVy());
+                }
+            }
+        }
+        if (lived<=0) {
+            console.log("投擲終了");
+            // resetCursor(); 
+            if(message){
+                ShowMessage(message);
+                setTimeout(() => {
+                    sideChange();
+                    exContainer.scrollTop = exCon.offsetHeight;
+                }, 2000); // ← 2秒後に戻す
+                if(linkage){
+                    exContainer.scrollTop=exCon.offsetHeight;
+                }
+            }else{
+                sideChange();
+                if(linkage){
+                    exContainer.scrollTop=exCon.offsetHeight;
+                }
+            }
+            return;
+        }
+        requestAnimationFrame(() => animate(shootingStone));
+    }
+    const brushCursor = document.getElementById('brushCursor');
+    function getCurrentThrowingStone(){
+        for(cStn of cStone){
+
+        }
+    }
+    //ブラシ動作
+    function updateCursor(offsetX, offsetY) {
+        const cStn = shootingStone; // ← 現在投擲中のストーン
+        if (!cStn) {
+            brushCursor.style.display = 'none';
+            return;
+        }
+        if (!cStn) {
+            brushCursor.style.display = 'none';
+            return;
+        }
+        const rect = exContainer.getBoundingClientRect();
+        const mouseX = offsetX;
+        const mouseY = offsetY;
+
+        const dx = mouseX - cStn.getX(exSheet);
+        const dy = mouseY - cStn.getY(exSheet);
+        const dist = Math.hypot(dx, dy);
+
+        if (dist < 100 && dy < 0) {
+            console.log("dx="+dx)
+            if(dx<-20){
+                exSheet.style.cursor = 'url("brushl1.png") 16 16, auto';
+            }else if(dx>20){
+                exSheet.style.cursor = 'url("brushr1.png") 16 16, auto';
+            }else{
+                exSheet.style.cursor = 'url("brush1.png") 16 16, auto';
+            }
+        } else {
+            exSheet.style.cursor = 'default';
+        }
+    }
+    // スイープ開始
+    exSheet.addEventListener('mousedown', (e) => {
+        sweeping = true;
+        sweepX = e.offsetX;
+        sweepY = e.offsetY;
+    });
+    exSheet.addEventListener('touchstart', (e) => {
+        sweeping = true;
+        lastSweepX = e.touches[0].clientX;
+        lastSweepY = e.touches[0].clientY;
+    });
+    // スイープ移動
+    exSheet.addEventListener('mousemove', (e) => {
+        if (sweeping) {
+            const nowX = e.offsetX;
+            const nowY = e.offsetY;
+            brushEffect(nowX, nowY);
+            lastSweepX = nowX;
+            lastSweepY = nowY;
+        }
+    });
+    exSheet.addEventListener('touchmove', (e) => {
+        if (sweeping) {
+            const nowX = e.touches[0].clientX;
+            const nowY = e.touches[0].clientY;
+            brushEffect(nowX, nowY);
+            lastSweepX = nowX;
+            lastSweepY = nowY;
+        }
+    });
+    // ブラシ効果
+    function brushEffect(nowX, nowY) {
+        const dx = nowX - lastSweepX;
+        const dy = nowY - lastSweepY;
+        const sweepVec = pl.Vec2(dx, dy);
+
+        for (const cStn of cStone) {
+            if (cStn.life === 2) {
+                const p = cStn.getPixel(exSheet);
+                const dist = Math.hypot(nowX - p.x, nowY - p.y);
+
+                if (dist < 50) {
+                    let v = cStn.body.getLinearVelocity();
+                    let adjustment = pl.Vec2(0, 0);
+                    // スイープ位置がストーンの右か左かを見て補正方向を変える
+                    if (Math.abs(dy) > Math.abs(dx)) {
+                        // 上下スイープ → 速度アップ（Y方向）
+                        adjustment = pl.Vec2(0, -sweepParameter * Math.sign(dy));
+                    } else {
+                        // 左右スイープ → 曲げ（X方向）
+                        if (nowX > p.x) {
+                            // ストーンの右側をこすった → 右に曲がる（進行方向に対して）
+                            adjustment = pl.Vec2(+sweepParameter, 0);
+                        } else {
+                            // 左側をこすった → 左に曲がる
+                            adjustment = pl.Vec2(-sweepParameter, 0);
+                        }
+                    }
+                    // 速度を微調整
+                    // console.log("1 vx="+financial(v.x,3), "vy="+financial(v.y,2))
+                    const newVx = v.x + adjustment.x;
+                    const newVy = v.y + adjustment.y;
+                    cStn.body.setLinearVelocity(pl.Vec2(newVx, newVy));
+                    // console.log("2 vx="+financial(cStn.getVx(),3), "vy="+financial(cStn.getVy(),2))
+                }
+            }
+        }
+    }
+
+    // スイープ終了
+    exSheet.addEventListener('mouseup', () => {
+        sweeping = false;
+    });
+    exSheet.addEventListener('touchend', () => {
+        sweeping = false;
+    });
+
+
+    function isStone(body) {
+        return body.label && body.label.startsWith("stone");
+    }
+
+    function SetStonePos(cStn,sheet){
+        //ストーンの移動
+        let stElm;
+        let pos=cStn.getPixel(sheet);
+        if(sheet==whSheet){
+            stElm= document.getElementById("stoneS"+cStn.index)
+        }else{
+            stElm= document.getElementById("stoneL"+cStn.index)
+        }
+        stElm.style.left = pos.x + 'px';
+        stElm.style.top = pos.y + 'px';
+    }
+
+    function hideStone(ix){
+        cStone[ix].visibility(false);
+        let stElm = document.getElementById("stoneL"+ix);
+        //失格したストーンを点滅して消す
+        blinkAndThen(stElm, 3, function() {
+        });
+        stElm = document.getElementById("stoneS"+ix);
+        blinkAndThen(stElm, 3, function() {
+        });
+    }
+    function blinkAndThen(element, times, callback) {
+        //点滅して消す
+        let count = 0;
+        const blinkInterval = 450;
+        const delay = 900;
+
+        function blink() {
+            if (count >= times) {
+                if (callback) callback(); // 終わったら次の処理を実行！
+                return;
+            }
+            setTimeout(() => {
+                element.style.visibility = "visible";
+            }, count * delay);
+            setTimeout(() => {
+                element.style.visibility = "hidden";
+            }, count * delay + blinkInterval);
+            count++;
+            blink(); // 次の点滅へ
+        }
+        blink();
+    }
+
+    //サイドバーのサイズ変更
+    function handlePointerMove(e) {
+        if(!isScrubbing) return;
+        e.preventDefault()
+        mousePosition = { x: e.pageX };
+        if(
+            !mousePosition.x || 
+            mousePosition.x > (window.innerWidth - sectionMinWidth) ||
+            mousePosition.x < sectionMinWidth
+        ) return;
+        var moved = borderEl.offsetLeft-mousePosition.x;
+        sideWidth += moved;
+        borderEl.style.left = mousePosition.x;
+        var exw= pArea.offsetWidth-whSheet.width-sideWidth-borderEl.offsetWidth;
+        detailEl.style.width = exw;
+        sidebarEl.style.width = sideWidth+'px';
+        sidebarEl.style.left=(pArea.offsetWidth-sideWidth) +'px';
+        SheetRedraw();
+    }
+    function financial(x,f){
+        //小数点以下ｆ桁までで四捨五入
+        return Number.parseFloat(x).toFixed(f)
+    }
+    function ShowMessage(msg){
+        document.getElementById("messageBox").innerHTML= msg;
+    }
+    function ShowWarning(tempMsg) {
+        //ドラえもん作
+        const msgBox = document.getElementById("messageBox");
+
+        // 1. 現在のメッセージを保存
+        const originalMsg = msgBox.innerText;
+
+        // 2. 警告メッセージを表示
+        msgBox.innerText = tempMsg;
+        msgBox.style.color = "pink"; // optional 警告スタイル
+
+        // 3. 一定時間後に元に戻す
+        setTimeout(() => {
+            msgBox.innerText = originalMsg;
+            msgBox.style.color = ""; // スタイル戻す（任意）
+        }, 2000); // ← 2秒後に戻す
+    }
+    function anotherStone(stoneEl,spin){
+        //ほかのシートのストーンを同じ位置に動かす
+        let ix=stoneEl.id.slice(6);
+        let ss=stoneEl.id.slice(5,6);
+        let otherStone;
+        if(ss=="L"){
+            otherStone="stoneS"+ix;
+        }else{
+            otherStone="stoneL"+ix
+        }
+        let gp = cStone[ix].getPixel(stoneEl)
+        let stElm = document.getElementById(otherStone);
+        let gc = stElm.parentElement.getBoundingClientRect()
+        let sc=cStone[ix].getPixel(stElm.parentElement);
+        gp = cStone[ix].getPixel(stElm)
+        stElm.style.left =sc.x;
+        stElm.style.top = sc.y*.983;
+        stElm.style.transform='rotate('+ spin +'deg)';
+    }
+
+    //sheetとclsStoneの座標と縮尺に合わせて全てのsheetのストーンを並べなおす
+    function StoneAdjust(sheet,stoneName){
+        let sg=sheet.getBoundingClientRect();
+        let scale= getScale(sheet);
+        let sr = stoneRadius*2 *scale;  //ストーンの直径
+        if(sr<10) sr=10;
+        let parent = sheet.parentElement;
+        for(s of cStone) {
+            let stElm = document.getElementById(stoneName.slice(0,6)+s.index);
+            stElm.style.width=sr;
+            stElm.style.height=sr;
+            stElm.style.display = "block";
+            stElm.style.visibility  = "visible"
+            let stp=s.getPixel(sheet);
+            stElm.style.left = stp.x +"px";
+            stElm.style.top = stp.y + "px";
+        };
+    }
+    function getScale(sheet){
+        return sheet.offsetHeight/sheetHeight;
+    }
+    function drawHouse(ctx, cx, cy, scale){
+        //cx,cy ハウスの中心 houseRadius ハウスの半径 
+        circleDraw(ctx,cx,cy,houseRadius*scale,'blue');         //ハウス外径
+        circleDraw(ctx,cx,cy,houseRad2*scale,'white' );
+        circleDraw(ctx,cx,cy,houseRad3*scale,'red' );                   
+        circleDraw(ctx,cx,cy,houseRad4*scale,'white' );         //ボタン 中心はティー
+    }
+
+    function lineDraw(ctx,x1,y1,x2,y2,d){
+        ctx.beginPath();
+        if(d>0){
+            ctx.setLineDash([d,d]);
+        }else{
+            ctx.setLineDash([]);
+        }
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.stroke();
+    }
+    function circleDraw(ctx,cx,cy,r,col){
+        ctx.fillStyle = col;
+        ctx.beginPath();
+        ctx.arc(cx,cy,r,0,2*Math.PI);
+        ctx.closePath();
+        ctx.fill();
+    }
+    //タブレットの場合のlogの表示
+    function log(msg) {
+        const el = document.getElementById('log');
+        if (el) el.innerHTML += msg + '<br>';
+    }
+    // JSの実行時エラーも拾う
+    window.onerror = function(message, source, lineno, colno, error) {
+        log("❌Error: " + message + " @ " + lineno + ":" + colno);
+        return false;
+    };
+</script>
 </html>
