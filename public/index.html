@@ -826,6 +826,7 @@ maximum-scale=1.0, user-scalable=no" />
                         touchStartTime = performance.now(); // 現在の時間をミリ秒で取得
                     }
                 }
+
             }, { passive: false });
         }
     }
@@ -833,7 +834,6 @@ maximum-scale=1.0, user-scalable=no" />
     document.onmouseup = stoneMouseUp;
     //マウスによるストーンの移動開始
     function stoneMouseDown(e){
-        clearInterval(blinkInterval);
         if(DragAble){
             dragTarget = this;
             let ix= dragTarget.id.slice(6);
@@ -846,7 +846,9 @@ maximum-scale=1.0, user-scalable=no" />
                 beforeY = this.offsetTop;
                 rubber=null;
                 cStone[ix].setFeet(dragTarget);
+
                 if(e.button==2){
+
                     const canCoords= getCanvasCoordinates(exSheet, e.clientX, e.clientY);
                     //ラバーバンドの開始
                     // mousePos={x:canCoords.x*.9, y:canCoords.y*.974};
@@ -866,8 +868,9 @@ maximum-scale=1.0, user-scalable=no" />
         if (isDragging === 0) {
             return; // ← これ追加！！
         }
+
         if(isDragging==1){
-            if(rubber){
+            if(rubber!=null){
                 //右ボタン ラバーバンド
                 const canCoords= getCanvasCoordinates(exSheet, e.clientX, e.clientY);
                 mousePos={x:canCoords.x, y:canCoords.y};
@@ -898,6 +901,7 @@ maximum-scale=1.0, user-scalable=no" />
                 beforeY=e.clientY;
                 //違うシートのストーンを動かす
                 anotherStone(dragTarget);
+
                 sendStone(cStone[ix],2);
             }
         }
@@ -1003,6 +1007,8 @@ maximum-scale=1.0, user-scalable=no" />
                 stoneMouseMove(e);
                 beforeX=newX;
                 beforeY=newY;
+                sendStone(cStone[ix],2);
+
             }else if(e.touches.length === 2) {
                 //二本指ならラバーバンド
                 rubber=true;
@@ -1017,6 +1023,7 @@ maximum-scale=1.0, user-scalable=no" />
             let lp = points.length-1;
             let s = 3;
             if(points.length<s) s=points.length-1;
+
             let beginAngle = Math.atan2(points[s].y-points[1].y, points[s].x-points[1].x);
             var tx="";
             let endAngle=Math.atan2(points[lp].y-points[lp-s].y,points[lp].x-points[lp-s].x);
@@ -1298,17 +1305,21 @@ maximum-scale=1.0, user-scalable=no" />
 
     //サーバーにストーン投擲情報を送る
     function sendStone(cStn,flag=1){
-        console.log("sendStone flag="+flag);
-        const data = {
-            ix: cStn.index,
-            x: cStn.getX(),
-            y: cStn.getY(),
-            vx: cStn.getVx(),
-            vy: cStn.getVy(),
-            spin: cStn.spin ?? 0,
-            flag: flag  // 1=投擲、2=ドラッグ中
-        };
-        socket.emit("stoneThrow", data);
+        try{
+            const data = {
+                ix: cStn.index,
+                x: cStn.getX(),
+                y: cStn.getY(),
+                vx: cStn.getVx(),
+                vy: cStn.getVy(),
+                spin: cStn.spin ?? 0,
+                flag: flag  // 1=投擲、2=ドラッグ中
+            };
+            socket.emit("stoneThrow", data);
+
+        }catch(err){
+            console.error("❌ sendStone error:", err);
+        }
     }
     // 受信してストーンを再現
     socket.on('stoneUpdate', (data) => {
