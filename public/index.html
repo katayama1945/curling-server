@@ -1311,6 +1311,7 @@ maximum-scale=1.0, user-scalable=no" />
     }
     // 受信してストーンを再現
     socket.on('stoneUpdate', (data) => {
+        console.log("stoneupdate "+data.flag)
         const cStn = cStone[data.ix];
         if(data.flag===1){
             cStn.body.setPosition(planck.Vec2(data.x, data.y));
