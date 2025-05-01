@@ -86,6 +86,11 @@ maximum-scale=1.0, user-scalable=no" />
         <input id="txtNameB" class="loginName" type="text">黄<br><br>
         <button id="playon" onclick="PlayCurling()">スタート</button>
     </div>
+    <div class="mobileTabs">
+        <button onclick="showView('detail')">操作</button>
+        <button onclick="showView('containerofWholeSheet')">全体</button>
+        <button onclick="showView('sidebar')">チャット</button>
+    </div>
     <div id="log" style="position:fixed; bottom:0; left:0; right:0; max-height:150px; overflow:auto; background:#000; color:#0f0; font-size:12px; padding:5px; z-index:9999;"></div>
 </body>
 <style>
@@ -237,6 +242,39 @@ maximum-scale=1.0, user-scalable=no" />
         position:absolute;
         width:20;
         height:20;
+    }
+    /* スマホ縦だけに適用 */
+    @media (max-width: 600px) {
+        .viewArea {
+            width: 100vw;
+            height: calc(100vh - 50px); /* 下のタブボタン分を差し引き */
+            overflow: auto;
+        }
+
+        .mobileTabs {
+            display: flex;
+            justify-content: space-around;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100vw;
+            height: 50px;
+            background: #ccc;
+            z-index: 999;
+        }
+
+        .mobileTabs button {
+            flex: 1;
+            font-size: 16px;
+            padding: 8px;
+            border: none;
+            background: #eee;
+        }
+
+        /* PCやタブレットではこのタブを隠す */
+        .mobileTabs {
+            display: none;
+        }
     }
 </style>
 <script>
@@ -431,8 +469,15 @@ maximum-scale=1.0, user-scalable=no" />
     //ver 0.07 :Planck.js(bk80) 25/4/28
     //ver 0.08 :スイープ機能(bk82) 25/4/29
     //ver 0.09 :ブラシ(bk83)　25/4/30
+    //ver 0.10 :ネット接続(bk85) 25/5/1
 
-    window.onload = init;
+    window.addEventListener('load', () => {
+        if (window.innerWidth <= 600) {
+            showView('detail'); // スマホで最初に操作ビューを表示
+        }
+        init();
+    });
+    //window.onload = init;
     window.addEventListener("resize", () => {
         setTimeout(SheetRedraw, 200); // ← iPad用 遅延を入れてサイズが落ち着いてから再描画
     });
@@ -457,7 +502,6 @@ maximum-scale=1.0, user-scalable=no" />
     let lastSweepX, lastSweepY;
     const sweepParameter=0.003;     //スイープした時の加速度
     const timeLoop=16;              //ストーン移動の描画タイミング
-    const friction=0.995;           // 摩擦係数
     const weight=100;               //速度の重みつけ
     const pArea = document.getElementById("pnlArea");
     const exSheet=document.getElementById("expansionSheet");                    //拡大シート
@@ -519,7 +563,7 @@ maximum-scale=1.0, user-scalable=no" />
         let wg=whSheet.getBoundingClientRect();
         let eg=exSheet.getBoundingClientRect();
         whGuide.style.left = wg.left+"px";
-        whGuide.style.top = wg.top;
+        whGuide.style.top = wg.top +"px";
         whGuide.style.width= wg.width;
         whGuide.onmousedown = guidemousedown;
         whGuide.onmousemove = guidemousemove;
@@ -1102,7 +1146,7 @@ maximum-scale=1.0, user-scalable=no" />
         sheetRec.width = sheetRec.height/10;
         let wg=whSheet.getBoundingClientRect()
         whGuide.style.left = wg.left+"px";
-        whGuide.style.top = wg.top;
+        whGuide.style.top = wg.top +"px";
         whGuide.style.width=wg.width;
         whSheet.parentElement.style.width=sheetRec.clientWidth;
         DrawSheet(whSheet, sheetRec, "stoneSmall");
@@ -1113,8 +1157,8 @@ maximum-scale=1.0, user-scalable=no" />
     //拡大シート
     function closeupSheet(){
         var cuWidth = exSheet.width;
-        exCon.style.left=0;
-        exSheet.style.left=0;
+        exCon.style.left=0 +"px";
+        exSheet.style.left=0 +"px";
         let sheetRec = new DOMRect;
         sheetRec.y = 0;
         sheetRec.x = 0;
@@ -1133,8 +1177,8 @@ maximum-scale=1.0, user-scalable=no" />
         let hg = hogLine *scale;      //シート中央からホッグラインまでの距離
         // sheet.width = sheet.width; //消去
         let parent=sheet.parentElement;
-        parent.style.top= sheetRec.y;
-        parent.style.left=sheetRec.x;
+        parent.style.top= sheetRec.y +"px";
+        parent.style.left=sheetRec.x +"px";
         parent.
         width=sheetRec.width;
         parent.height=sheetRec.height;
@@ -1242,7 +1286,7 @@ maximum-scale=1.0, user-scalable=no" />
             var lw = pArea.offsetWidth;
             lw -= sideWidth;
             lw -=20; //なぜか狂う？？？？調整
-            borderEl.style.left = lw;
+            borderEl.style.left = lw +"px";
             borderEl.style.top = pArea.offsetTop;
             borderEl.style.height = pArea.offsetHeight;
         }
@@ -1339,8 +1383,8 @@ maximum-scale=1.0, user-scalable=no" />
             let stoneEl= document.getElementById("stoneL"+data.ix);
             let p = cStn.getPixel(exSheet);
             console.log("p="+ p.x+","+p.y)
-            stoneEl.style.left = p.x;
-            stoneEl.style.top = p.y;
+            stoneEl.style.left = p.x +"px";
+            stoneEl.style.top = p.y +"px";
             anotherStone(stoneEl,spin);
 
             //stn.body.setPosition(planck.Vec2(data.x, data.y));
@@ -1622,7 +1666,7 @@ maximum-scale=1.0, user-scalable=no" />
         ) return;
         var moved = borderEl.offsetLeft-mousePosition.x;
         sideWidth += moved;
-        borderEl.style.left = mousePosition.x;
+        borderEl.style.left = mousePosition.x +"px";
         var exw= pArea.offsetWidth-whSheet.width-sideWidth-borderEl.offsetWidth;
         detailEl.style.width = exw;
         sidebarEl.style.width = sideWidth+'px';
@@ -1668,8 +1712,8 @@ maximum-scale=1.0, user-scalable=no" />
         let gc = stElm.parentElement.getBoundingClientRect()
         let sc=cStone[ix].getPixel(stElm.parentElement);
         gp = cStone[ix].getPixel(stElm)
-        stElm.style.left =sc.x;
-        stElm.style.top = sc.y*.983;
+        stElm.style.left =sc.x +"px";
+        stElm.style.top = sc.y*.983 +"px";
         stElm.style.transform='rotate('+ spin +'deg)';
     }
 
@@ -1720,6 +1764,19 @@ maximum-scale=1.0, user-scalable=no" />
         ctx.closePath();
         ctx.fill();
     }
+    //スマホ画面の切り替え
+    function showView(name) {
+        document.getElementById("pnlArea").style.display = "none";
+
+        if (name === "main") {
+            document.getElementById("mainView").style.display = "block";
+        } else if (name === "overview") {
+            document.getElementById("overviewView").style.display = "block";
+        } else if (name === "chat") {
+            document.getElementById("chatView").style.display = "block";
+        }
+    }
+
     //タブレットの場合のlogの表示
     function log(msg) {
         const el = document.getElementById('log');
