@@ -1291,20 +1291,21 @@ maximum-scale=1.0, user-scalable=no" />
         shootingStone = cStone[ix];
         animate();
         setTimeout(() => {
-            sendStone(cStone[ix]);
+            sendStone(cStone[ix],1);
         })
         DragAble=true;
     }
 
     //サーバーにストーン投擲情報を送る
-    function sendStone(cStn){
+    function sendStone(cStn,flag=1){
         const data = {
             ix: cStn.index,
             x: cStn.getX(),
             y: cStn.getY(),
             vx: cStn.getVx(),
             vy: cStn.getVy(),
-            spin: cStn.spin ?? 0
+            spin: cStn.spin ?? 0,
+            flag: flag  // 1=投擲、2=ドラッグ中
         };
         socket.emit("stoneThrow", data);
     }
