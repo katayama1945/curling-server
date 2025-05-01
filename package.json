@@ -1,5 +1,13 @@
-npm init -y
-npm install express socket.io
-"scripts": {
-  "start": "node server.js"
+{
+  "name": "curling-server",
+  "version": "1.0.0",
+  "description": "カーリング対戦用サーバー",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "socket.io": "^4.7.2"
+  }
 }
