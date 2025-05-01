@@ -459,6 +459,15 @@ maximum-scale=1.0, user-scalable=no" />
             this.total[1]=0;
         }
     }
+    //upload powershell
+    //cd C:\Users\katayama\Documents\Curling\web\project
+    //git add .
+    //git commit -m "fix: 最新のカーリング画面"
+    //git push
+    // ダッシュボード（https://dashboard.render.com）を開く
+    // livedに
+    //　https://curling-server.onrender.com/
+
     //ver 0.00 :iPadのドラッグ(bk50)
     //ver 0.01 :ログイン画面(bk51)
     //ver 0.02 :Matter.js(bk70)
@@ -1766,14 +1775,16 @@ maximum-scale=1.0, user-scalable=no" />
     }
     //スマホ画面の切り替え
     function showView(name) {
-        document.getElementById("pnlArea").style.display = "none";
+        document.getElementById("detail").style.display = "none";
+        document.getElementById("containerOfWholeSheet").style.display = "none";
+        document.getElementById("sidebar").style.display = "none";
 
         if (name === "main") {
-            document.getElementById("mainView").style.display = "block";
+            document.getElementById("detail").style.display = "block";
         } else if (name === "overview") {
-            document.getElementById("overviewView").style.display = "block";
+            document.getElementById("containerOfWholeSheet").style.display = "block";
         } else if (name === "chat") {
-            document.getElementById("chatView").style.display = "block";
+            document.getElementById("sidebar").style.display = "block";
         }
     }
 
