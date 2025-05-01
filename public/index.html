@@ -11,12 +11,7 @@ maximum-scale=1.0, user-scalable=no" />
 <script>
     const socket = io("https://curling-server.onrender.com");
     //let lang=window.localStorage.getItem(['Language']);
-
-
-
-
-    enemyStone.set(data.x, data.y, data.vx, data.vy, data.spin);
-
+    // enemyStone.set(data.x, data.y, data.vx, data.vy, data.spin);
 </script>
 <body>
     <div id="$Title"> カーリングパラダイス</div>
@@ -1294,13 +1289,15 @@ maximum-scale=1.0, user-scalable=no" />
         // setCursorToBrush();
         shootingStone = cStone[ix];
         animate();
-        sendStone(cStone[ix]);
+        setTimeout(() => {
+            sendStone(cStone[ix]);
+        })
         DragAble=true;
     }
 
     //サーバーにストーン投擲情報を送る
     function sendStone(cStn){
-        console.log("🧊 送信するストーン:", cStn);
+        console.log("🧊 送信するストーン:", cStn.life+" x="+cStn.getX()+" y="+cStn.getY());
         const data = {
             ix: cStn.index,
             x: cStn.getX(),
