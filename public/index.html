@@ -1305,6 +1305,7 @@ maximum-scale=1.0, user-scalable=no" />
 
     //サーバーにストーン投擲情報を送る
     function sendStone(cStn,flag=1){
+        console.log("flag="+flag);
         try{
             const data = {
                 ix: cStn.index,
