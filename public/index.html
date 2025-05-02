@@ -75,7 +75,7 @@ maximum-scale=1.0, user-scalable=no" />
         </div>
         <div id="border" class="border"></div>
         <div id="sidebar">
-            
+            <div id="chat">---- chat ----</div>
         </div>
     </div>
     <div id="login">
@@ -88,8 +88,7 @@ maximum-scale=1.0, user-scalable=no" />
     </div>
     <div class="mobileTabs">
         <button onclick="showView('detail')">操作</button>
-        <button onclick="showView('containerofWholeSheet')">全体</button>
-        <button onclick="showView('sidebar')">チャット</button>
+        <button onclick="showView('overview')">全体</button>
     </div>
     <div id="log" style="position:fixed; bottom:0; left:0; right:0; max-height:150px; overflow:auto; background:#000; color:#0f0; font-size:12px; padding:5px; z-index:9999;"></div>
 </body>
@@ -243,8 +242,14 @@ maximum-scale=1.0, user-scalable=no" />
         width:20;
         height:20;
     }
+    /* PCやタブレットではこのタブを隠す */
+    .mobileTabs {
+        display: none;
+    }
+
     /* スマホ縦だけに適用 */
     @media (max-width: 600px) {
+
         .viewArea {
             width: 100vw;
             height: calc(100vh - 50px); /* 下のタブボタン分を差し引き */
@@ -269,12 +274,8 @@ maximum-scale=1.0, user-scalable=no" />
             padding: 8px;
             border: none;
             background: #eee;
-        }
+        } 
 
-        /* PCやタブレットではこのタブを隠す */
-        .mobileTabs {
-            display: none;
-        }
     }
 </style>
 <script>
@@ -459,7 +460,10 @@ maximum-scale=1.0, user-scalable=no" />
             this.total[1]=0;
         }
     }
-    //upload powershell
+    //upload
+    // save 
+    // copy to web\project
+    // open powershell
     //cd C:\Users\katayama\Documents\Curling\web\project
     //git add .
     //git commit -m "fix: 最新のカーリング画面"
@@ -481,8 +485,21 @@ maximum-scale=1.0, user-scalable=no" />
     //ver 0.10 :ネット接続(bk85) 25/5/1
 
     window.addEventListener('load', () => {
+        const dashboard = document.getElementById('dashboard');
+        const pnlArea = document.getElementById('pnlArea');
+        const detail = document.getElementById('detail');
+
         if (window.innerWidth <= 600) {
-            showView('detail'); // スマホで最初に操作ビューを表示
+            // スマホ：pnlArea の先頭に移動
+            if (dashboard && pnlArea && dashboard.parentNode !== pnlArea) {
+                pnlArea.insertBefore(dashboard, pnlArea.firstChild);
+            }
+            showView("detail");
+        } else {
+            // PC：detail の中に戻す
+            if (dashboard && detail && dashboard.parentNode !== detail) {
+            detail.insertBefore(dashboard, detail.firstChild);
+            }
         }
         init();
     });
@@ -1113,8 +1130,8 @@ maximum-scale=1.0, user-scalable=no" />
         pArea.style.height=wiheight*.99;
         let sheetPos = longSheet();//全体シート
         let wd = pArea.clientWidth;
-        if(sidebarEl.style.display=="block"){
-            wd -= parseInt(sidebarEl.style.width);
+        if(sidebar.style.display=="block"){
+            wd -= parseInt(sidebar.style.width);
         }
         wd = wd -whSheet.width-50; 
         exSheet.width= wd;
@@ -1775,17 +1792,39 @@ maximum-scale=1.0, user-scalable=no" />
     }
     //スマホ画面の切り替え
     function showView(name) {
+        console.log("showviw")
+
         document.getElementById("detail").style.display = "none";
         document.getElementById("containerOfWholeSheet").style.display = "none";
         document.getElementById("sidebar").style.display = "none";
+        if (name === "detail") {
 
-        if (name === "main") {
             document.getElementById("detail").style.display = "block";
+            // 操作ビューのときは dashboard を detail に戻す
+            if (dashboard.parentNode !== detail) {
+                detail.insertBefore(dashboard, detail.firstChild);
+            }
+            whCon.style.display="none";
+            whSheet.style.displey="none";
+            detail.style.display = "flex";
+            detail.style.flexDirection= "column";
+            dashboard.style.flex = "0 1 auto";
+            exContainer.style.flex = "1 1 auto";
+            exContainer.style.width = "100%";
         } else if (name === "overview") {
             document.getElementById("containerOfWholeSheet").style.display = "block";
-        } else if (name === "chat") {
             document.getElementById("sidebar").style.display = "block";
+            
+            // 全体では dashboard を sidebar の上に移動
+            if (dashboard.parentNode !== sidebar) {
+                sidebar.insertBefore(dashboard, sidebar.firstChild);
+            }
+            sidebar.style.display = "flex";
+            sidebar.style.flexDirection = "column";
+            dashboard.style.flex = "0 1 auto";
+            chat.style.flex = "1 1 auto";
         }
+        SheetRedraw();
     }
 
     //タブレットの場合のlogの表示
