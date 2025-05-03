@@ -12,6 +12,10 @@ const server = http.createServer(app);
 const io = socketIO(server);
 
 app.use(express.static('public')); // クライアント側を入れるフォルダ
+// ←ここに以下を追加！
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  });
 
 io.on('connection', (socket) => {
     console.log('🔌 接続:', socket.id);
