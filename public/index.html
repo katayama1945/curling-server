@@ -9,6 +9,19 @@ maximum-scale=1.0, user-scalable=no" />
 <script src="https://unpkg.com/planck-js@0.3.0/dist/planck.min.js"></script>
 <script src="https://curling-server.onrender.com/socket.io/socket.io.js"></script>
 <script>
+    //upload
+    // save 
+    // copy to web\project
+    // open powershell
+    //cd C:\Users\katayama\Documents\Curling\web\project
+    //git add .
+    //git commit -m "fix: 最新のカーリング画面"
+    //git push
+    // ダッシュボード（https://dashboard.render.com）を開く
+    // livedに
+    //　https://curling-server.onrender.com/
+
+
     const socket = io("https://curling-server.onrender.com");
     //let lang=window.localStorage.getItem(['Language']);
     // enemyStone.set(data.x, data.y, data.vx, data.vy, data.spin);
@@ -22,21 +35,21 @@ maximum-scale=1.0, user-scalable=no" />
                 <!--全体シート-->
             </canvas>
         </div>
-        <div id="detail">
-            <div id="dashboard">
+        <div id="pnlDetail">
+            <div id="pnlDashboard">
                 <div id="stage">
                     <div id="messageBox"></div>
                     <div id="buttons">
-                        <button id="Start">開始</button>
-                        <button id="topMost" onclick="topMost()">top</button>
-                        <button id="bottomMost" onclick="bottomMost()">Bottom</button>
-                        <input type="checkbox" id="chkLinkage" checked />
-                        <label for="chkLinkage" style="color:azure">連動</label>
-                        <label id="sideview" style="color:azure">＜＜</label>
+                        <button id="cmdStart">開始</button>
+                        <button id="cmdTopMost" onclick="topMost()">top</button>
+                        <button id="cmdBottomMost" onclick="bottomMost()">Bottom</button>
+                        <input  id="chkLinkage" type="checkbox" checked />
+                        <label id="lblLinkage" for="chkLinkage" style="color:azure">連動</label>
+                        <label id="cmdSideview" style="color:azure">＜＜</label>
                     </div>
                 </div>
                 <div id="scoreBox">
-                    <table id="score" border="1">
+                    <table id="spdScore" border="1">
                         <thead>
                             <tr id="topheader">
                                 <th scope="col"></th>
@@ -73,9 +86,9 @@ maximum-scale=1.0, user-scalable=no" />
                 </div>
             </div>
         </div>
-        <div id="border" class="border"></div>
-        <div id="sidebar">
-            <div id="chat">---- chat ----</div>
+        <div id="pnlBorder" class="pnlBorder"></div>
+        <div id="pnlSidebar">
+            <div>chat ----</div>
         </div>
     </div>
     <div id="login">
@@ -84,11 +97,12 @@ maximum-scale=1.0, user-scalable=no" />
         <input id="txtNameA" class="loginName" type="text">赤<br>
         <label id="lblNameB">B</label>
         <input id="txtNameB" class="loginName" type="text">黄<br><br>
-        <button id="playon" onclick="PlayCurling()">スタート</button>
+        <button id="cmdBegin" onclick="PlayCurling()">スタート</button>
     </div>
     <div class="mobileTabs">
-        <button onclick="showView('detail')">操作</button>
-        <button onclick="showView('overview')">全体</button>
+        <button onclick="showSmatView('detail')">操作</button>
+        <button onclick="showSmatView('overview')">全体</button>
+        <button onclick="showSmatView('sidebar')">チャット</button>
     </div>
     <div id="log" style="position:fixed; bottom:0; left:0; right:0; max-height:150px; overflow:auto; background:#000; color:#0f0; font-size:12px; padding:5px; z-index:9999;"></div>
 </body>
@@ -143,12 +157,12 @@ maximum-scale=1.0, user-scalable=no" />
         height: 100%;
         background-color: rgb(233, 243, 249);
     }
-    #detail{
+    #pnlDetail{
         flex: 1 0 auto;
         display:flex;
         flex-direction: column;
     }
-    #dashboard{
+    #pnlDashboard{
         display: flex;
         flex: 1 1 auto;
         height: 80px;
@@ -174,7 +188,7 @@ maximum-scale=1.0, user-scalable=no" />
     #scoreBox{
         flex: 1;
     }
-    #score{
+    #spdScore{
         border-collapse: collapse;
         border-color:yellow;
         color:white;
@@ -214,14 +228,14 @@ maximum-scale=1.0, user-scalable=no" />
         transform-origin: center center;
         z-index: 1000;        
     }
-    #sidebar{
+    #pnlSidebar{
         flex: 1 0 auto;
         display:flex;
         height: 100%;
         flex-direction: column;
        border: 2px solid darkgray;
     }
-    .border{
+    .pnlBorder{
         width: 5px;
         cursor: ew-resize;
         background-color: blue;
@@ -249,7 +263,6 @@ maximum-scale=1.0, user-scalable=no" />
 
     /* スマホ縦だけに適用 */
     @media (max-width: 600px) {
-
         .viewArea {
             width: 100vw;
             height: calc(100vh - 50px); /* 下のタブボタン分を差し引き */
@@ -274,7 +287,7 @@ maximum-scale=1.0, user-scalable=no" />
             padding: 8px;
             border: none;
             background: #eee;
-        } 
+        }
 
     }
 </style>
@@ -460,18 +473,6 @@ maximum-scale=1.0, user-scalable=no" />
             this.total[1]=0;
         }
     }
-    //upload
-    // save 
-    // copy to web\project
-    // open powershell
-    //cd C:\Users\katayama\Documents\Curling\web\project
-    //git add .
-    //git commit -m "fix: 最新のカーリング画面"
-    //git push
-    // ダッシュボード（https://dashboard.render.com）を開く
-    // livedに
-    //　https://curling-server.onrender.com/
-
     //ver 0.00 :iPadのドラッグ(bk50)
     //ver 0.01 :ログイン画面(bk51)
     //ver 0.02 :Matter.js(bk70)
@@ -485,21 +486,8 @@ maximum-scale=1.0, user-scalable=no" />
     //ver 0.10 :ネット接続(bk85) 25/5/1
 
     window.addEventListener('load', () => {
-        const dashboard = document.getElementById('dashboard');
-        const pnlArea = document.getElementById('pnlArea');
-        const detail = document.getElementById('detail');
-
         if (window.innerWidth <= 600) {
-            // スマホ：pnlArea の先頭に移動
-            if (dashboard && pnlArea && dashboard.parentNode !== pnlArea) {
-                pnlArea.insertBefore(dashboard, pnlArea.firstChild);
-            }
-            showView("detail");
-        } else {
-            // PC：detail の中に戻す
-            if (dashboard && detail && dashboard.parentNode !== detail) {
-            detail.insertBefore(dashboard, detail.firstChild);
-            }
+            showSmatView('detail'); // スマホで最初に操作ビューを表示
         }
         init();
     });
@@ -508,7 +496,7 @@ maximum-scale=1.0, user-scalable=no" />
         setTimeout(SheetRedraw, 200); // ← iPad用 遅延を入れてサイズが落ち着いてから再描画
     });
     $Title.onclick = Reload;
-    sideview.onclick = sideviewclick;
+    cmdSideview.onclick = sideviewclick;
     function Reload(){
         window.location.reload(true);
     }
@@ -536,7 +524,17 @@ maximum-scale=1.0, user-scalable=no" />
     const whSheet = document.getElementById("wholeSheet");                      //全体シート
     const whCon=document.getElementById("containerOfWholeSheet");               //全体のストーンを置く
     const whGuide=document.getElementById("scrollGuide");
-    const detail=document.getElementById("detail");
+    const pDetail=document.getElementById("pnlDetail");
+    const sScore = document.getElementById("spdScore");
+    const pDashboard = document.getElementById("pnlDashboard");
+    const cStart=document.getElementById("cmdStart");
+    const cTop=document.getElementById("cmdTopMost");
+    const cBottom=document.getElementById("cmdBottomMost");
+    const cLinkage=document.getElementById("chkLinkage");
+    const lLinkage=document.getElementById("lblLinkage");
+    const cSideview=document.getElementById("cmdSideview");
+    const pSidebar= document.getElementById("pnlSidebar");
+    const pBorder=document.getElementById('pnlBorder');
     //カーリングシートのフィート各サイズ
     const sheetWidth = 15;                  //シートのサイズ
     const sheetHeight = 146;
@@ -573,33 +571,101 @@ maximum-scale=1.0, user-scalable=no" />
     let cMember;                            //競技者
     let Stones;                             //ストーンのエレメント配列
     let guideMax;
-    let sidebarEl;
-    let borderEl;
-    let detailEl;
     let blinkInterval;
     let isScrubbing = false;
     let mousePosition = { x: 0 };
     const sectionMinWidth = 150 // px
+
+    //スマホ画面の切り替え
+    function showSmatView(name) {
+        pArea.style.width = "97vw";
+        pArea.style.height = "96vh";
+        // pDetail.style.display = "none";
+        // pSidebar.style.display = "none";
+        cTop.style.display='none';
+        cBottom.style.display='none';
+        cLinkage.style.display='none';
+        lLinkage.style.display='none';
+        cSideview.style.display='none';
+        if (name === "detail") {
+            //拡大
+            whCon.style.display = "none";
+            pDetail.style.display = "block";
+
+            let wd = pArea.clientWidth*.95;
+            exSheet.width= wd;
+            exCon.width= wd;
+            exSheet.style.width = wd;
+            exCon.style.height= wd*10;
+            exSheet.style.height = (exSheet.offsetwidth*10 -10)+"px";
+            exCon.style.width= wd;
+            exCon.style.height = exSheet.offsetHeight;
+            exContainer.width= wd;
+            exContainer.style.height=pArea.offsetHeight-pDashboard.offsetHeight;
+            let closeupPos = closeupSheet(exSheet);
+        } else if (name === "overview") {
+            //全体とチャット
+            whCon.style.display = "block";
+            let sheetPos = longSheet(pArea.offsetHeight-50);
+            whSheet.style.height = pArea.offsetHeight - pDashboard.offsetHeight;
+            whSheet.style.width = whSheet.offsetHeight/10;
+            // pArea.removeChild(pDetail);
+        }
+    }
+
     function init(){
         var scwidth=screen.availWidth;
         var scheight=screen.availHeight;
-        pArea.style.width = wiwidth*.97;
-        pArea.style.height = wiheight*.96;
-
-        let wg=whSheet.getBoundingClientRect();
-        let eg=exSheet.getBoundingClientRect();
-        whGuide.style.left = wg.left+"px";
-        whGuide.style.top = wg.top +"px";
-        whGuide.style.width= wg.width;
-        whGuide.onmousedown = guidemousedown;
-        whGuide.onmousemove = guidemousemove;
-        whGuide.onmouseup = guidemouseup;
-        whGuide.onpointermove = GuideMove;
-
-        sidebarEl= document.getElementById("sidebar");
-        borderEl=document.getElementById('border');
-        detailEl= document.getElementById("detail");
-        borderEl.addEventListener('pointerdown', () => { isScrubbing = true; });
+        pArea.style.width = "97vw";
+        pArea.style.height = "96vh";
+        if (window.innerWidth <= 600) {
+            //スマホ用
+            showSmatView("detail")
+        }else{
+            //PCやタブレット
+            pDetail.style.width = "100%";
+            pDashboard.style.width="100%"
+            exContainer.style.width = "100%";
+            let ag = pArea.getBoundingClientRect();
+            let aWidth = ag.width-15;
+            whSheet.style.height = ag.height;
+            whSheet.style.width = ag.height/10;
+            aWidth -= whSheet.offsetWidth;
+            if(pSidebar.style.display=="Flex"){
+                aWidth -= pSidebar.offsetWidth;
+            }
+            pDetail.style.width = aWidth;
+            pDashboard.style.width = aWidth;
+            exContainer.style.width = aWidth;
+            aWidth -=15;
+            exCon.style.width = aWidth;
+            exCon.style.height = aWidth*10;
+            exSheet.style.width = aWidth;
+            exSheet.style.height = aWidth*10;
+            let wg = whSheet.getBoundingClientRect();
+            whGuide.style.left = wg.left+"px";
+            whGuide.style.top = wg.top +"px";
+            whGuide.style.width= wg.width;
+            whGuide.onmousedown = guidemousedown;
+            whGuide.onmousemove = guidemousemove;
+            whGuide.onmouseup = guidemouseup;
+            whGuide.onpointermove = GuideMove;
+            let wd = pArea.clientWidth;
+            //全体シートの描画
+            let sheetPos = longSheet(pArea.offsetHeight-50);
+            wd = wd -sheetPos.width-60; 
+            pDetail.style.width=wd;
+            exCon.style.width= wd;
+            exCon.style.height= wd*10;
+            exSheet.style.width= wd;
+            exSheet.style.height=wd*10;
+            exSheet.width= wd;
+            exSheet.height=wd*10;        
+            //拡大シートの描画
+            let closeupPos = closeupSheet(exSheet);
+        }
+        //スマホPC共通
+        pBorder.addEventListener('pointerdown', () => { isScrubbing = true; });
         document.addEventListener('pointermove', (e) => {
             if (isScrubbing) {
                 e.preventDefault();
@@ -611,12 +677,12 @@ maximum-scale=1.0, user-scalable=no" />
             if (isScrubbing) e.preventDefault();
         }, { passive: false });
         document.addEventListener('pointerup', () => {isScrubbing = false; });
-        sidebarEl.style.width=sideWidth +'px';
-        sidebarEl.style.display="none";
-        borderEl.style.display="none";
+        pSidebar.style.width=sideWidth +'px';
+        pSidebar.style.display="none";
+        pBorder.style.display="none";
         document.addEventListener('pointerleave', () => isScrubbing = false);
         guideMax=exContainer.scrollHeight -exContainer.clientHeight;
-        document.getElementById("Start").addEventListener('click', gameBegin);
+        cStart.addEventListener('click', gameBegin);
         document.addEventListener( 'DOMContentLoaded', () => {
             exContainer.addEventListener('touchmove',noscroll, {passive:false});
             function noscroll ( e ) {
@@ -653,11 +719,6 @@ maximum-scale=1.0, user-scalable=no" />
         }
         StoneDragSetting("stoneLarge");
         StoneDragSetting("stoneSmall");
-        //全体シートの描画
-        let sheetPos = longSheet(pArea.offsetHeight-50);
-        let wd = pArea.clientWidth;
-        wd = wd -sheetPos.width-60; 
-        //拡大シートの描画
         exContainer.addEventListener('mousedown', function(e) {
             e.preventDefault();
         });
@@ -670,14 +731,6 @@ maximum-scale=1.0, user-scalable=no" />
         exSheet.addEventListener('mousemove', (e) => {
             updateCursor(e.offsetX, e.offsetY);
         });
-        document.getElementById("detail").style.width=wd;
-        exCon.style.width= wd;
-        exCon.style.height= wd*10;
-        exSheet.style.width= wd;
-        exSheet.style.height=wd*10;
-        exSheet.width= wd;
-        exSheet.height=wd*10;
-        let closeupPos = closeupSheet(exSheet);
         StoneLayout();
         if(exContainer.clientHeight < exSheet.height){
             //一番下にスクロールする
@@ -804,14 +857,12 @@ maximum-scale=1.0, user-scalable=no" />
 
     function scoreWrite(colNum,rowNum,Point){
         //得点表に得点の書き込み
-        var scoreEl = document.getElementById("score");
-        scoreEl.rows[rowNum].cells[colNum].innerHTML = Point;
+        
+        sScore.rows[rowNum].cells[colNum].innerHTML = Point;
     }
     function scoreBackColor(rowNum, colNum, color) {
-        var scoreEl = document.getElementById("score");
-        // console.log("scorebackcolor "+colNum+ "::"+rowNum);
-        if (scoreEl && scoreEl.rows[rowNum] && scoreEl.rows[rowNum].cells[colNum]) {
-            scoreEl.rows[rowNum].cells[colNum].style.backgroundColor = color;
+        if (sScore && sScore.rows[rowNum] && sScore.rows[rowNum].cells[colNum]) {
+            sScore.rows[rowNum].cells[colNum].style.backgroundColor = color;
         } else {
             console.error(`セルが見つかりません row=${rowNum} col=${colNum}`);
         }
@@ -869,6 +920,7 @@ maximum-scale=1.0, user-scalable=no" />
     function StoneDragSetting(stoneType){
         Stones = document.getElementsByClassName(stoneType);
         for(let i=0; i<MaxStone*2; i++){
+            console.log("stons[i]="+Stones[i])
             let stnEl=Stones[i];
             stnEl.onpointerdown = stoneMouseDown;
             stnEl.addEventListener('touchstart', function (e) {
@@ -1130,14 +1182,14 @@ maximum-scale=1.0, user-scalable=no" />
         pArea.style.height=wiheight*.99;
         let sheetPos = longSheet();//全体シート
         let wd = pArea.clientWidth;
-        if(sidebar.style.display=="block"){
-            wd -= parseInt(sidebar.style.width);
+        if(pSidebar.style.display=="block"){
+            wd -= parseInt(pSidebar.style.width);
         }
-        wd = wd -whSheet.width-50; 
+        wd = wd -whSheet.width-20; 
         exSheet.width= wd;
         exCon.width= wd;
         exContainer.width= wd;
-        document.getElementById("detail").style.width=wd;
+        pDetail.style.width=wd;
         exCon.style.height= wd*10;
         exSheet.style.height=wd*10;
         //スクロールガイドの
@@ -1176,48 +1228,49 @@ maximum-scale=1.0, user-scalable=no" />
         whGuide.style.width=wg.width;
         whSheet.parentElement.style.width=sheetRec.clientWidth;
         DrawSheet(whSheet, sheetRec, "stoneSmall");
-        var children = document.getElementById("scrollerOfExpansionSheet").childNodes;
+        var children = exContainer.childNodes;
         return whSheet.getBoundingClientRect();
     }
  
     //拡大シート
     function closeupSheet(){
-        var cuWidth = exSheet.width;
+        var cuWidth = parseFloat(exSheet.offsetWidth);
+        var cuHeight = exSheet.offsetHeight;
         exCon.style.left=0 +"px";
         exSheet.style.left=0 +"px";
         let sheetRec = new DOMRect;
         sheetRec.y = 0;
         sheetRec.x = 0;
         sheetRec.width = cuWidth;
-        sheetRec.height = sheetRec.width*10;
+        sheetRec.height = cuHeight;
         DrawSheet(exSheet,sheetRec,"stoneLarge");
     }
 
     ///カーリングシートの描画
     function DrawSheet(sheet,sheetRec,stoneName){
-        let scale= getScale(sheet);
-        let hc = houseCenter *scale;  //シート中央からハウスの中心までの距離(ft)
-        let hr = houseRadius*scale;   //ハウスの半径
-        let bl = backLine * scale;    //シート中央からバックラインまでの距離
-        let hl = hackLine *scale;     //シート中央からハックラインまでの距離
-        let hg = hogLine *scale;      //シート中央からホッグラインまでの距離
-        // sheet.width = sheet.width; //消去
+        sheet.width = sheetRec.width;       //canvasでは必要 pxをつけないこと
+        sheet.height = sheetRec.height;
+        sheet.style.width = sheetRec.width + "px";
+        sheet.style.height = sheetRec.height + "px";
+        sheet.style.top= sheetRec.y +"px";
+        sheet.style.left= sheetRec.x +"px";
         let parent=sheet.parentElement;
         parent.style.top= sheetRec.y +"px";
         parent.style.left=sheetRec.x +"px";
-        parent.
-        width=sheetRec.width;
-        parent.height=sheetRec.height;
-        sheet.width = sheetRec.width;
-        sheet.style.width = sheetRec.width;
-        sheet.height = sheetRec.height;
-        sheet.style.height=sheetRec.height
+        parent.style.width=sheetRec.width +"px";
+        parent.style.height=sheetRec.height +"px";
 
+        let scale= getScale(sheet);
+        let hc = houseCenter *scale;    //シート中央からハウスの中心までの距離(ft)
+        let hr = houseRadius*scale;     //ハウスの半径
+        let bl = backLine * scale;      //シート中央からバックラインまでの距離
+        let hl = hackLine *scale;       //シート中央からハックラインまでの距離
+        let hg = hogLine *scale;        //シート中央からホッグラインまでの距離
+        var sh =sheetRec.height/2;      //縦中央値
         const ctx = sheet.getContext("2d");
-        var sh =sheetRec.height/2; //縦中央値
         ctx.lineWidth = 1;
         ctx.fillStyle= 'lightgreen';
-        ctx.fillRect(0,sh+hc,sheetRec.width,hg-hc);               //FGZ フリーガードゾーン
+        ctx.fillRect(0,sh+hc,sheetRec.width,hg-hc);                         //FGZ フリーガードゾーン
         ctx.fillStyle='white';
         ctx.strokeStyle = 'black';
         ctx.lineWidth = 1;
@@ -1295,26 +1348,26 @@ maximum-scale=1.0, user-scalable=no" />
         onGuide=false;
     }
     function sideviewclick(){
-        let lblSideview=document.getElementById("sideview");
+        let lblSideview=document.getElementById("cmdSideview");
         if(lblSideview.innerText=="＞＞"){
             lblSideview.innerHTML="＜＜";
-            sideWidth=parseInt(sidebarEl.style.width);
-            borderEl.style.display ="none";
-            sidebarEl.style.display="none";
+            sideWidth=parseInt(pSidebar.style.width);
+            pBorder.style.display ="none";
+            pSidebar.style.display="none";
         }else{
             lblSideview.innerHTML="＞＞";
-            borderEl.style.display ="block";
-            sidebarEl.style.display="block";
-            var exw= pArea.offsetWidth-whSheet.width-sideWidth-borderEl.offsetWidth;
-            detailEl.style.width = exw+'px';
-            sidebarEl.style.width = sideWidth+'px';
-            // sidebarEl.style.left=(pArea.offsetWidth-sideWidth-500) +'px';
+            pBorder.style.display ="block";
+            pSidebar.style.display="block";
+            var exw= pArea.offsetWidth-whSheet.width-sideWidth-pBorder.offsetWidth;
+            pDetail.style.width = exw+'px';
+            pSidebar.style.width = sideWidth+'px';
+            // pSidebar.style.left=(pArea.offsetWidth-sideWidth-500) +'px';
             var lw = pArea.offsetWidth;
             lw -= sideWidth;
             lw -=20; //なぜか狂う？？？？調整
-            borderEl.style.left = lw +"px";
-            borderEl.style.top = pArea.offsetTop;
-            borderEl.style.height = pArea.offsetHeight;
+            pBorder.style.left = lw +"px";
+            pBorder.style.top = pArea.offsetTop;
+            pBorder.style.height = pArea.offsetHeight;
         }
         SheetRedraw();
     }
@@ -1690,13 +1743,13 @@ maximum-scale=1.0, user-scalable=no" />
             mousePosition.x > (window.innerWidth - sectionMinWidth) ||
             mousePosition.x < sectionMinWidth
         ) return;
-        var moved = borderEl.offsetLeft-mousePosition.x;
+        var moved = pBorder.offsetLeft-mousePosition.x;
         sideWidth += moved;
-        borderEl.style.left = mousePosition.x +"px";
-        var exw= pArea.offsetWidth-whSheet.width-sideWidth-borderEl.offsetWidth;
-        detailEl.style.width = exw;
-        sidebarEl.style.width = sideWidth+'px';
-        sidebarEl.style.left=(pArea.offsetWidth-sideWidth) +'px';
+        pBorder.style.left = mousePosition.x +"px";
+        var exw= pArea.offsetWidth-whSheet.width-sideWidth-pBorder.offsetWidth;
+        pDetail.style.width = exw;
+        pSidebar.style.width = sideWidth+'px';
+        pSidebar.style.left=(pArea.offsetWidth-sideWidth) +'px';
         SheetRedraw();
     }
     function financial(x,f){
@@ -1751,6 +1804,7 @@ maximum-scale=1.0, user-scalable=no" />
         if(sr<10) sr=10;
         let parent = sheet.parentElement;
         for(s of cStone) {
+            console.log("s="+s.index)
             let stElm = document.getElementById(stoneName.slice(0,6)+s.index);
             stElm.style.width=sr;
             stElm.style.height=sr;
@@ -1790,43 +1844,6 @@ maximum-scale=1.0, user-scalable=no" />
         ctx.closePath();
         ctx.fill();
     }
-    //スマホ画面の切り替え
-    function showView(name) {
-        console.log("showviw")
-
-        document.getElementById("detail").style.display = "none";
-        document.getElementById("containerOfWholeSheet").style.display = "none";
-        document.getElementById("sidebar").style.display = "none";
-        if (name === "detail") {
-
-            document.getElementById("detail").style.display = "block";
-            // 操作ビューのときは dashboard を detail に戻す
-            if (dashboard.parentNode !== detail) {
-                detail.insertBefore(dashboard, detail.firstChild);
-            }
-            whCon.style.display="none";
-            whSheet.style.displey="none";
-            detail.style.display = "flex";
-            detail.style.flexDirection= "column";
-            dashboard.style.flex = "0 1 auto";
-            exContainer.style.flex = "1 1 auto";
-            exContainer.style.width = "100%";
-        } else if (name === "overview") {
-            document.getElementById("containerOfWholeSheet").style.display = "block";
-            document.getElementById("sidebar").style.display = "block";
-            
-            // 全体では dashboard を sidebar の上に移動
-            if (dashboard.parentNode !== sidebar) {
-                sidebar.insertBefore(dashboard, sidebar.firstChild);
-            }
-            sidebar.style.display = "flex";
-            sidebar.style.flexDirection = "column";
-            dashboard.style.flex = "0 1 auto";
-            chat.style.flex = "1 1 auto";
-        }
-        SheetRedraw();
-    }
-
     //タブレットの場合のlogの表示
     function log(msg) {
         const el = document.getElementById('log');
