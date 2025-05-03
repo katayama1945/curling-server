@@ -1,80 +1,34 @@
 <!DOCTYPE html>
-<html lang="ja">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <title>カーリング ロビー</title>
-  <script src="/socket.io/socket.io.js"></script>
-  <style>
-    body { font-family: sans-serif; padding: 20px; }
-    #waitingUsers button { display: block; margin: 5px 0; }
-  </style>
+  <meta charset="utf-8">
+  <title>カーリング対戦</title>
 </head>
 <body>
+  <h1>オンラインカーリング</h1>
+  <div id="statusDiv">状態を取得中...</div>
 
-  <!-- 画面1：対戦募集 -->
-  <div id="screen1" class="screen active">
-    <h2>カーリング対戦者 募集中</h2>
-    <label>あなたの名前：</label>
-    <input type="text" id="hostName">
-    <button onclick="startHost()">対戦を募集する</button>
-  </div>
-
-  <!-- 画面2：待機中（参加者入力） -->
-  <div id="screen2" class="screen">
-    <h2 id="waitingMsg">○○さんが対戦者を募集しています！</h2>
-    <label>あなたの名前（参加者）：</label>
-    <input type="text" id="guestName">
-    <button onclick="joinGame()">対戦に申し込む</button>
-  </div>
-
-  <!-- 画面3：対戦成立 -->
-  <div id="screen3" class="screen">
-    <h2>対戦成立！</h2>
-    <p id="matchInfo">○○さん vs △△さん</p>
-    <p>ゲームを開始します...</p>
-  </div>
-  <style>
-    .screen {
-    display: none;
-    }
-    .screen.active {
-    display: block;
-    }
-
-  </style>
   <script>
-    let host = '';
-    let guest = '';
+    const statusDiv = document.getElementById("statusDiv");
+    const ws = new WebSocket("ws://localhost:3000"); // ポートとURLは合わせる
 
-    function switchScreen(id) {
-      document.querySelectorAll('.screen').forEach(div => div.classList.remove('active'));
-      document.getElementById(id).classList.add('active');
-    }
+    ws.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      console.log("受信:", data);
 
-    function startHost() {
-      host = document.getElementById('hostName').value.trim();
-      if (!host) {
-        alert("名前を入力してください");
-        return;
+      if (data.status === "idle") {
+        statusDiv.textContent = "🟢 誰も参加していません";
+        // ここに「参加ボタン」表示など追加してもOK
+
+      } else if (data.status === "waiting") {
+        statusDiv.textContent = "🟡 誰かが参加して対戦者を待っています";
+        // 参加受付UIなどを表示
+
+      } else if (data.status === "playing") {
+        statusDiv.textContent = "🔴 ゲーム中です";
+        // 観戦機能などを出す場合はここに追加
       }
-      document.getElementById('waitingMsg').textContent = `${host} さんが対戦者を募集しています！`;
-      switchScreen('screen2');
-    }
-
-    function joinGame() {
-      guest = document.getElementById('guestName').value.trim();
-      if (!guest) {
-        alert("名前を入力してください");
-        return;
-      }
-      document.getElementById('matchInfo').textContent = `${host} さん vs ${guest} さん`;
-      switchScreen('screen3');
-
-      // 数秒後に curling.html に遷移（名前をURLパラメータで渡す）
-      setTimeout(() => {
-        window.location.href = `curling.html?host=${encodeURIComponent(host)}&guest=${encodeURIComponent(guest)}`;
-      }, 2000);
-    }
+    };
   </script>
 </body>
 </html>
