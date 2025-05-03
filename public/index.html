@@ -9,15 +9,17 @@ maximum-scale=1.0, user-scalable=no" />
 <script src="https://unpkg.com/planck-js@0.3.0/dist/planck.min.js"></script>
 <script src="https://curling-server.onrender.com/socket.io/socket.io.js"></script>
 <script>
-    //upload
+    //upload手順
     // save 
-    // copy to web\project
+    // index.html copyto web\project\public
     // open powershell
     //cd C:\Users\katayama\Documents\Curling\web\project
     //git add .
     //git commit -m "fix: 最新のカーリング画面"
     //git push
     // ダッシュボード（https://dashboard.render.com）を開く
+    // curling-server-newを開く
+    // Deployをクリック
     // livedに
     //　https://curling-server.onrender.com/
 
@@ -99,10 +101,9 @@ maximum-scale=1.0, user-scalable=no" />
         <input id="txtNameB" class="loginName" type="text">黄<br><br>
         <button id="cmdBegin" onclick="PlayCurling()">スタート</button>
     </div>
-    <div class="mobileTabs">
+    <div id="mobileTabs">
         <button onclick="showSmatView('detail')">操作</button>
         <button onclick="showSmatView('overview')">全体</button>
-        <button onclick="showSmatView('sidebar')">チャット</button>
     </div>
     <div id="log" style="position:fixed; bottom:0; left:0; right:0; max-height:150px; overflow:auto; background:#000; color:#0f0; font-size:12px; padding:5px; z-index:9999;"></div>
 </body>
@@ -257,7 +258,7 @@ maximum-scale=1.0, user-scalable=no" />
         height:20;
     }
     /* PCやタブレットではこのタブを隠す */
-    .mobileTabs {
+    #mobileTabs {
         display: none;
     }
 
@@ -269,7 +270,7 @@ maximum-scale=1.0, user-scalable=no" />
             overflow: auto;
         }
 
-        .mobileTabs {
+        #mobileTabs {
             display: flex;
             justify-content: space-around;
             position: fixed;
@@ -281,7 +282,7 @@ maximum-scale=1.0, user-scalable=no" />
             z-index: 999;
         }
 
-        .mobileTabs button {
+        #mobileTabs button {
             flex: 1;
             font-size: 16px;
             padding: 8px;
@@ -484,6 +485,7 @@ maximum-scale=1.0, user-scalable=no" />
     //ver 0.08 :スイープ機能(bk82) 25/4/29
     //ver 0.09 :ブラシ(bk83)　25/4/30
     //ver 0.10 :ネット接続(bk85) 25/5/1
+    //ver 0.11 :スマホ対応(bk90) 25/5/3
 
     window.addEventListener('load', () => {
         if (window.innerWidth <= 600) {
@@ -580,6 +582,8 @@ maximum-scale=1.0, user-scalable=no" />
     function showSmatView(name) {
         pArea.style.width = "97vw";
         pArea.style.height = "96vh";
+        let mh=pArea.offsetHeight-document.getElementById("mobileTabs").offsetHeight-10;
+        pArea.style.height = mh +"px";
         // pDetail.style.display = "none";
         // pSidebar.style.display = "none";
         cTop.style.display='none';
@@ -590,8 +594,9 @@ maximum-scale=1.0, user-scalable=no" />
         if (name === "detail") {
             //拡大
             whCon.style.display = "none";
+            exContainer.style.display = "block";
             pDetail.style.display = "block";
-
+            pSidebar.style.display="none";
             let wd = pArea.clientWidth*.95;
             exSheet.width= wd;
             exCon.width= wd;
@@ -606,11 +611,19 @@ maximum-scale=1.0, user-scalable=no" />
         } else if (name === "overview") {
             //全体とチャット
             whCon.style.display = "block";
-            let sheetPos = longSheet(pArea.offsetHeight-50);
-            whSheet.style.height = pArea.offsetHeight - pDashboard.offsetHeight;
+            exContainer.style.display = "none";
+            pSidebar.style.display = "block";
+            pSidebar.style.width = "100%";
+            pSidebar.style.height = (pArea.offsetHeight-pDashboard.offsetHeight)+"px";
+            pDetail.appendChild(pSidebar);
+            whSheet.style.height = pArea.offsetHeight;
             whSheet.style.width = whSheet.offsetHeight/10;
+            let sheetPos = longSheet();
             // pArea.removeChild(pDetail);
         }
+        StoneAdjust(exSheet,"stoneLarge")
+        StoneAdjust(whSheet,"stoneSmall")
+
     }
 
     function init(){
@@ -741,8 +754,6 @@ maximum-scale=1.0, user-scalable=no" />
                 GuideAdjust();
             }
         }, {passive: true});
-        StoneAdjust(whSheet, "stoneSmall");
-        StoneAdjust(exSheet, "stoneLarge");
         memberView();
     }
 
