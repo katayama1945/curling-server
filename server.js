@@ -23,6 +23,7 @@ let playerNames = {};  // ← クライアントごとの名前管理
 
 // WebSocket ??? 処理
 wss.on('connection', ws => {
+    console.log("✅ 新しい WebSocket 接続");
     clients.push(ws);
     // ✅ 初回に接続直後の状態を送る！
     const player1 = waitingPlayer ? playerNames[waitingPlayer] : null;
@@ -35,10 +36,11 @@ wss.on('connection', ws => {
     };
     ws.send(JSON.stringify(data));
     ws.on('message', msg => {
+        console.log("✅ 参加要求:", data); // ← これ追加
+
         const data = JSON.parse(msg);
 
         if (data.type === "join") {
-            console.log("✅ 参加要求:", data); // ← これ追加
             playerNames[ws] = data.name || "匿名";
 
             if (status === "idle") {
