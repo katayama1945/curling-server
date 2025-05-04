@@ -38,6 +38,7 @@ wss.on('connection', ws => {
         const data = JSON.parse(msg);
 
         if (data.type === "join") {
+            console.log("✅ 参加要求:", data); // ← これ追加
             playerNames[ws] = data.name || "匿名";
 
             if (status === "idle") {
