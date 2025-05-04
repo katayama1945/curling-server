@@ -24,7 +24,16 @@ let playerNames = {};  // ← クライアントごとの名前管理
 // WebSocket 処理
 wss.on('connection', ws => {
     clients.push(ws);
-
+    // ✅ 初回に接続直後の状態を送る！
+    const player1 = waitingPlayer ? playerNames[waitingPlayer] : null;
+    const player2 = null;
+    const data = {
+        type: "status",
+        status,
+        player1,
+        player2
+    };
+    ws.send(JSON.stringify(data));
     ws.on('message', msg => {
         const data = JSON.parse(msg);
 
