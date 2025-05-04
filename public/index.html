@@ -7,37 +7,39 @@
 <body>
   <h1>オンラインカーリング</h1>
   <div id="statusDiv">状態を取得中...</div>
+  <input id="nameInput" placeholder="名前を入力">
   <button id="joinBtn" style="display:none;">🎮 参加する</button>
 
   <script>
     const statusDiv = document.getElementById("statusDiv");
     const joinBtn = document.getElementById("joinBtn");
     const ws = new WebSocket("wss://curling-server.onrender.com"); // ← Render 用に wss
-    // kakikomi
+    
     ws.onopen = () => {
       console.log("🔌 WebSocket接続");
     };
-
+    document.getElementById("joinBtn").onclick = () => {
+      const name = document.getElementById("nameInput").value.trim();
+      if (name) {
+        ws.send(JSON.stringify({ type: "join", name }));
+      }
+    };
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
       console.log("受信:", data);
-
-      if (data.status === "idle") {
-        statusDiv.textContent = "🟢 誰も参加していません";
-        joinBtn.style.display = "inline";
-      } else if (data.status === "waiting") {
-        statusDiv.textContent = "🟡 誰かが参加して対戦者を待っています";
-        joinBtn.style.display = "inline";
-      } else if (data.status === "playing") {
-        statusDiv.textContent = "🔴 ゲーム中です";
-        joinBtn.style.display = "none";
+      if (data.type === "status") {
+        const msg = {
+          "idle": "🟢 参加者受付中",
+          "waiting": `🟡 ${data.player1 ?? "誰か"} が対戦者受付中...`,
+          "playing": `🔴 対戦中：${data.player1 ?? "A"} vs ${data.player2 ?? "B"}`
+        };
+        document.getElementById("statusDiv").textContent = msg[data.status];
       }
     };
-
-    joinBtn.addEventListener("click", () => {
-      ws.send(JSON.stringify({ type: "join" }));
-      joinBtn.style.display = "none";
-    });
+    // joinBtn.addEventListener("click", () => {
+    //   ws.send(JSON.stringify({ type: "join" }));
+    //   joinBtn.style.display = "none";
+    // });
   </script>
 </body>
 </html>
