@@ -19,56 +19,72 @@ const wss = new WebSocket.Server({ server }); // ← これが重要！
 let clients = [];
 let status = "idle";
 let waitingPlayer = null;
+let playerNames = {};  // ← クライアントごとの名前管理
 
 // WebSocket 処理
 wss.on('connection', ws => {
     clients.push(ws);
-    console.log("🌐 新しい接続");
-
-    ws.send(JSON.stringify({ type: "status", status }));
 
     ws.on('message', msg => {
         const data = JSON.parse(msg);
 
         if (data.type === "join") {
+            playerNames[ws] = data.name || "匿名";
+
             if (status === "idle") {
                 waitingPlayer = ws;
                 status = "waiting";
-                broadcast({ type: "status", status });
+                broadcastStatus();
             } else if (status === "waiting" && ws !== waitingPlayer) {
                 status = "playing";
-                broadcast({ type: "status", status });
+                broadcastStatus();
             }
+        }
+
+        if (data.type === "end") {
+            status = "idle";
+            waitingPlayer = null;
+            broadcastStatus();
         }
 
         if (data.type === "leave") {
             if (status === "waiting" && ws === waitingPlayer) {
                 status = "idle";
                 waitingPlayer = null;
-                broadcast({ type: "status", status });
+                broadcastStatus();
             }
         }
     });
 
     ws.on('close', () => {
         clients = clients.filter(c => c !== ws);
-        if (ws === waitingPlayer && status === "waiting") {
+        if (ws === waitingPlayer) {
             status = "idle";
             waitingPlayer = null;
-            broadcast({ type: "status", status });
         }
+        delete playerNames[ws];
+        broadcastStatus();
     });
 });
 
-function broadcast(data) {
+function broadcastStatus() {
+    const player1 = waitingPlayer ? playerNames[waitingPlayer] : null;
+    let player2 = null;
+
+    if (status === "playing") {
+        const others = clients.filter(c => c !== waitingPlayer);
+        player2 = others.length > 0 ? playerNames[others[0]] : null;
+    }
+
+    const data = {
+        type: "status",
+        status,
+        player1,
+        player2
+    };
+
     const msg = JSON.stringify(data);
-    clients.forEach(c => {
-        try {
-            c.send(msg);
-        } catch (e) {
-            console.warn("送信失敗:", e);
-        }
-    });
+    clients.forEach(c => c.send(msg));
 }
 
 // クライアントHTML配信
