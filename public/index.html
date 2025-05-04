@@ -34,13 +34,14 @@
           "playing": `🔴 対戦中：${data.player1 ?? "A"} vs ${data.player2 ?? "B"}`
         };
         document.getElementById("statusDiv").textContent = msg[data.status];
+        // ボタン表示制御
+        if (data.status === "idle" || data.status === "waiting") {
+          joinBtn.style.display = "inline";
+        } else {
+          joinBtn.style.display = "none";
+        }
       }
     };
-    joinBtn.addEventListener("click", () => {
-      ws.send(JSON.stringify({ type: "join" }));
-      joinBtn.style.display = "none";
-    });
-    //okasii
   </script>
 </body>
 </html>
