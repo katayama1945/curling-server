@@ -2,88 +2,96 @@
 //PowerShell　起動
 //cd C:\Users\katayama\Documents\Curling\web\project
 //node server.js
+// server.js 修正版（Render対応）
 
 const express = require('express');
 const http = require('http');
 const socketIO = require('socket.io');
+const WebSocket = require('ws');
+const path = require('path');
 
 const app = express();
-const server = http.createServer(app);
-const io = socketIO(server);
-// server.js
-const WebSocket = require('ws');
-const wss = new WebSocket.Server({ port: 3000 });
+const server = http.createServer(app); // HTTPサーバー
+const io = socketIO(server); // socket.io用
+
+const wss = new WebSocket.Server({ server }); // ← これが重要！
 
 let clients = [];
-let status = "idle"; // 状態: idle → waiting → playing
+let status = "idle";
 let waitingPlayer = null;
 
-    wss.on('connection', ws => {
-        clients.push(ws);
-        console.log("新しい接続");
+// WebSocket 処理
+wss.on('connection', ws => {
+    clients.push(ws);
+    console.log("🌐 新しい接続");
 
-        // 初期状態を送る
-        ws.send(JSON.stringify({ type: "status", status }));
+    ws.send(JSON.stringify({ type: "status", status }));
 
-        ws.on('message', msg => {
-            const data = JSON.parse(msg);
+    ws.on('message', msg => {
+        const data = JSON.parse(msg);
 
-            if (data.type === "join") {
-                if (status === "idle") {
-                    waitingPlayer = ws;
-                    status = "waiting";
-                    broadcast({ type: "status", status });
-                } else if (status === "waiting" && ws !== waitingPlayer) {
-                    status = "playing";
-                    broadcast({ type: "status", status });
-                    // ここでゲームの準備スタートとか
-                }
+        if (data.type === "join") {
+            if (status === "idle") {
+                waitingPlayer = ws;
+                status = "waiting";
+                broadcast({ type: "status", status });
+            } else if (status === "waiting" && ws !== waitingPlayer) {
+                status = "playing";
+                broadcast({ type: "status", status });
             }
+        }
 
-            if (data.type === "leave") {
-                if (status === "waiting" && ws === waitingPlayer) {
-                    status = "idle";
-                    waitingPlayer = null;
-                    broadcast({ type: "status", status });
-                }
-            }
-        });
-
-        ws.on('close', () => {
-            clients = clients.filter(c => c !== ws);
-            if (ws === waitingPlayer && status === "waiting") {
+        if (data.type === "leave") {
+            if (status === "waiting" && ws === waitingPlayer) {
                 status = "idle";
                 waitingPlayer = null;
                 broadcast({ type: "status", status });
             }
-        });
+        }
     });
 
-    function broadcast(data) {
-        const msg = JSON.stringify(data);
-        clients.forEach(c => c.send(msg));
-    }
-
-app.use(express.static('public')); // クライアント側を入れるフォルダ
-// ←index.htmlを省略しても開く！
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
-  });
-
-io.on('connection', (socket) => {
-    console.log('🔌 接続:', socket.id);
-
-    socket.on('stoneThrow', (data) => {
-        console.log('🎯 投擲データ:', data);
-        socket.broadcast.emit('stoneUpdate', data); // 他のプレイヤーに送信
-    });
-
-    socket.on('chat', (msg) => {
-        io.emit('chat', msg); // 全員にチャットを送信
+    ws.on('close', () => {
+        clients = clients.filter(c => c !== ws);
+        if (ws === waitingPlayer && status === "waiting") {
+            status = "idle";
+            waitingPlayer = null;
+            broadcast({ type: "status", status });
+        }
     });
 });
 
+function broadcast(data) {
+    const msg = JSON.stringify(data);
+    clients.forEach(c => {
+        try {
+            c.send(msg);
+        } catch (e) {
+            console.warn("送信失敗:", e);
+        }
+    });
+}
+
+// クライアントHTML配信
+app.use(express.static('public'));
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+// socket.io のチャット・投擲処理（オプション）
+io.on('connection', (socket) => {
+    console.log('🔌 Socket.IO 接続:', socket.id);
+
+    socket.on('stoneThrow', (data) => {
+        socket.broadcast.emit('stoneUpdate', data);
+    });
+
+    socket.on('chat', (msg) => {
+        io.emit('chat', msg);
+    });
+});
+
+// ポートは Render 用に process.env.PORT を使う
 const port = process.env.PORT || 3000;
 server.listen(port, () => {
-    console.log(`🚀 サーバー起動 http://localhost:${port}`);
+    console.log(`🚀 サーバー起動 ポート ${port}`);
 });
