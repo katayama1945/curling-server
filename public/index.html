@@ -1,4 +1,6 @@
 <script>
+  window.onload = function () {
+
   const statusDiv = document.getElementById("statusDiv");
   const joinBtn = document.getElementById("joinBtn");
   const nameInput = document.getElementById("nameInput");
@@ -59,4 +61,5 @@
   });
 
   window.addEventListener("load", connectWebSocket);
+};
 </script>
