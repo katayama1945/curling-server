@@ -19,7 +19,7 @@ const wss = new WebSocket.Server({ server }); // ← これが重要！
 let clients = [];
 let status = "idle";
 let waitingPlayer = null;
-let playerNames = {};  // ← クライアントごとの名前管理
+let playerNames = new Map();  // ← クライアントごとの名前管理
 
 // WebSocket ??? 処理
 wss.on('connection', ws => {
@@ -41,7 +41,7 @@ wss.on('connection', ws => {
         const data = JSON.parse(msg);
 
         if (data.type === "join") {
-            playerNames[ws] = data.name || "匿名";
+            playerNames.set(ws, data.name || "匿名");
 
             if (status === "idle") {
                 waitingPlayer = ws;
@@ -75,18 +75,21 @@ wss.on('connection', ws => {
             status = "idle";
             waitingPlayer = null;
         }
-        delete playerNames[ws];
+        playerNames.delete(ws);
+        //delete playerNames[ws];
         broadcastStatus();
     });
 });
 
 function broadcastStatus() {
-    const player1 = waitingPlayer ? playerNames[waitingPlayer] : null;
+    const player1 = waitingPlayer ? playerNames.get(waitingPlayer) : null;
     let player2 = null;
 
     if (status === "playing") {
         const others = clients.filter(c => c !== waitingPlayer);
-        player2 = others.length > 0 ? playerNames[others[0]] : null;
+        player2 = others.length > 0 ? playerNames.get(others[0]) : null;
+
+        // player2 = others.length > 0 ? playerNames[others[0]] : null;
     }
 
     const data = {
