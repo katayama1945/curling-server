@@ -1,65 +1,65 @@
 <script>
   window.onload = function () {
 
-  const statusDiv = document.getElementById("statusDiv");
-  const joinBtn = document.getElementById("joinBtn");
-  const nameInput = document.getElementById("nameInput");
+    const statusDiv = document.getElementById("statusDiv");
+    const joinBtn = document.getElementById("joinBtn");
+    const nameInput = document.getElementById("nameInput");
 
-  let ws;
+    let ws;
 
-  function connectWebSocket() {
-    ws = new WebSocket("wss://curling-server.onrender.com");
+    function connectWebSocket() {
+      ws = new WebSocket("wss://curling-server.onrender.com");
 
-    ws.onopen = () => {
-      console.log("🔌 WebSocket接続");
-    };
+      ws.onopen = () => {
+        console.log("🔌 WebSocket接続");
+      };
 
-    ws.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      console.log("受信:", data);
+      ws.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        console.log("受信:", data);
 
-      if (data.type === "status") {
-        const msg = {
-          "idle": "🟢 参加者受付中",
-          "waiting": `🟡 ${data.player1 ?? "誰か"} が対戦者受付中...`,
-          "playing": `🔴 対戦中：${data.player1 ?? "A"} vs ${data.player2 ?? "B"}`
-        };
-        statusDiv.textContent = msg[data.status];
+        if (data.type === "status") {
+          const msg = {
+            "idle": "🟢 参加者受付中",
+            "waiting": `🟡 ${data.player1 ?? "誰か"} が対戦者受付中...`,
+            "playing": `🔴 対戦中：${data.player1 ?? "A"} vs ${data.player2 ?? "B"}`
+          };
+          statusDiv.textContent = msg[data.status];
 
-        if (data.status === "idle" || data.status === "waiting") {
-          joinBtn.style.display = "inline";
-        } else {
-          joinBtn.style.display = "none";
+          if (data.status === "idle" || data.status === "waiting") {
+            joinBtn.style.display = "inline";
+          } else {
+            joinBtn.style.display = "none";
+          }
         }
+      };
+
+      ws.onerror = (e) => {
+        console.error("❌ WebSocketエラー:", e);
+      };
+
+      ws.onclose = () => {
+        console.warn("🔌 WebSocket切断。再接続します...");
+        setTimeout(connectWebSocket, 2000); // 2秒後に再接続
+      };
+    }
+
+    joinBtn.addEventListener("click", () => {
+      const name = nameInput.value.trim();
+      if (!name) {
+        alert("名前を入力してください");
+        return;
       }
-    };
 
-    ws.onerror = (e) => {
-      console.error("❌ WebSocketエラー:", e);
-    };
+      if (ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ type: "join", name }));
+        console.log("📤 参加リクエスト送信");
+        joinBtn.style.display = "none";
+      } else {
+        alert("WebSocketが接続されていません。再読み込みしてください。");
+      }
+    });
 
-    ws.onclose = () => {
-      console.warn("🔌 WebSocket切断。再接続します...");
-      setTimeout(connectWebSocket, 2000); // 2秒後に再接続
-    };
-  }
-
-  joinBtn.addEventListener("click", () => {
-    const name = nameInput.value.trim();
-    if (!name) {
-      alert("名前を入力してください");
-      return;
-    }
-
-    if (ws.readyState === WebSocket.OPEN) {
-      ws.send(JSON.stringify({ type: "join", name }));
-      console.log("📤 参加リクエスト送信");
-      joinBtn.style.display = "none";
-    } else {
-      alert("WebSocketが接続されていません。再読み込みしてください。");
-    }
-  });
-
-  window.addEventListener("load", connectWebSocket);
+    window.addEventListener("load", connectWebSocket);
 };
 </script>
