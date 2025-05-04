@@ -21,7 +21,7 @@ let status = "idle";
 let waitingPlayer = null;
 let playerNames = {};  // ← クライアントごとの名前管理
 
-// WebSocket 処理
+// WebSocket ??? 処理
 wss.on('connection', ws => {
     clients.push(ws);
     // ✅ 初回に接続直後の状態を送る！
