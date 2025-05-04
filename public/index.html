@@ -10,18 +10,19 @@
   <button id="joinBtn" style="display:inline;">🎮 参加する</button>
 
   <script>
-let ws;
+ window.onload = function () {
 
 const statusDiv = document.getElementById("statusDiv");
-const nameInput = document.getElementById("nameInput");
 const joinBtn = document.getElementById("joinBtn");
+const nameInput = document.getElementById("nameInput");
 
-// WebSocket接続
-function setupWebSocket() {
+let ws;
+
+function connectWebSocket() {
   ws = new WebSocket("wss://curling-server.onrender.com");
 
   ws.onopen = () => {
-    console.log("🔌 WebSocket接続完了");
+    console.log("🔌 WebSocket接続");
   };
 
   ws.onmessage = (event) => {
@@ -45,28 +46,33 @@ function setupWebSocket() {
   };
 
   ws.onerror = (e) => {
-    console.error("WebSocket エラー:", e);
+    console.error("❌ WebSocketエラー:", e);
+  };
+
+  ws.onclose = () => {
+    console.warn("🔌 WebSocket切断。再接続します...");
+    setTimeout(connectWebSocket, 2000); // 2秒後に再接続
   };
 }
 
-// 初期化処理
-window.onload = () => {
-  setupWebSocket();
+joinBtn.addEventListener("click", () => {
+  const name = nameInput.value.trim();
+  if (!name) {
+    alert("名前を入力してください");
+    return;
+  }
 
-  joinBtn.addEventListener("click", () => {
-    const name = nameInput.value.trim();
-    if (!name) {
-      alert("名前を入力してください");
-      return;
-    }
+  if (ws && ws.readyState === WebSocket.OPEN) {
+    ws.send(JSON.stringify({ type: "join", name }));
+    console.log("📤 参加リクエスト送信");
+    joinBtn.style.display = "none";
+  } else {
+    alert("WebSocketが接続されていません。再読み込みしてください。");
+  }
+});
 
-    if (ws && ws.readyState === WebSocket.OPEN) {
-      ws.send(JSON.stringify({ type: "join", name }));
-      joinBtn.style.display = "none";
-    } else {
-      alert("WebSocketが接続されていません。ページを再読み込みしてください。");
-    }
-  });
+// ❗ ここで WebSocket を接続する
+connectWebSocket();
 };
 </script>
 </body>
