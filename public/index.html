@@ -10,7 +10,8 @@
 
   <script>
     const statusDiv = document.getElementById("statusDiv");
-    const ws = new WebSocket("ws://localhost:3000"); // ポートとURLは合わせる
+    //const ws = new WebSocket("ws://localhost:3000"); // ポートとURLは合わせる
+    const ws = new WebSocket("wss://curling-server.onrender.com");
 
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
