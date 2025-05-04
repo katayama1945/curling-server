@@ -1,4 +1,15 @@
-<script>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>カーリング対戦</title>
+</head>
+<body>
+  <h1>オンラインカーリング</h1>
+  <div id="statusDiv">状態を取得中...</div>
+  <input id="nameInput" placeholder="名前を入力">
+  <button id="joinBtn" style="display:none;">🎮 参加する</button>
+
+  <script>
   window.onload = function () {
 
     const statusDiv = document.getElementById("statusDiv");
@@ -63,3 +74,5 @@
     window.addEventListener("load", connectWebSocket);
 };
 </script>
+</body>
+</html>
