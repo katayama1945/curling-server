@@ -7,11 +7,16 @@
 <body>
   <h1>オンラインカーリング</h1>
   <div id="statusDiv">状態を取得中...</div>
+  <button id="joinBtn" style="display:none;">🎮 参加する</button>
 
   <script>
     const statusDiv = document.getElementById("statusDiv");
-    //const ws = new WebSocket("ws://localhost:3000"); // ポートとURLは合わせる
-    const ws = new WebSocket("wss://curling-server.onrender.com");
+    const joinBtn = document.getElementById("joinBtn");
+    const ws = new WebSocket("wss://curling-server.onrender.com"); // ← Render 用に wss
+
+    ws.onopen = () => {
+      console.log("🔌 WebSocket接続");
+    };
 
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
@@ -19,17 +24,20 @@
 
       if (data.status === "idle") {
         statusDiv.textContent = "🟢 誰も参加していません";
-        // ここに「参加ボタン」表示など追加してもOK
-
+        joinBtn.style.display = "inline";
       } else if (data.status === "waiting") {
         statusDiv.textContent = "🟡 誰かが参加して対戦者を待っています";
-        // 参加受付UIなどを表示
-
+        joinBtn.style.display = "inline";
       } else if (data.status === "playing") {
         statusDiv.textContent = "🔴 ゲーム中です";
-        // 観戦機能などを出す場合はここに追加
+        joinBtn.style.display = "none";
       }
     };
+
+    joinBtn.addEventListener("click", () => {
+      ws.send(JSON.stringify({ type: "join" }));
+      joinBtn.style.display = "none";
+    });
   </script>
 </body>
 </html>
