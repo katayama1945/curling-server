@@ -661,10 +661,10 @@ maximum-scale=1.0, user-scalable=no" />
         const params = new URLSearchParams(location.search);
         const host = params.get('host');
         const guest = params.get('guest');
-        console.log("host="+host)
-        if(!host || !guest){
-            window.location.href = "index.html";
-        }
+        // console.log("host="+host)
+        // if(!host || !guest){
+        //     window.location.href = "index.html";
+        // }
         cMember = new clsMember(host,guest);
         scoreWrite(0,1,cMember.getName(0));
         scoreWrite(0,2,cMember.getName(1));

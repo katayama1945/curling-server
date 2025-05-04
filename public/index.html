@@ -10,7 +10,10 @@
   <button id="joinBtn" style="display:inline;">🎮 参加する</button>
 
   <script>
- window.onload = function () {
+
+
+window.location.href = "curling.html";
+
 
 const statusDiv = document.getElementById("statusDiv");
 const joinBtn = document.getElementById("joinBtn");
@@ -73,7 +76,6 @@ joinBtn.addEventListener("click", () => {
 
 // ❗ ここで WebSocket を接続する
 connectWebSocket();
-};
 </script>
 </body>
 </html>
