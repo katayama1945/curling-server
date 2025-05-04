@@ -36,10 +36,11 @@
         document.getElementById("statusDiv").textContent = msg[data.status];
       }
     };
-    // joinBtn.addEventListener("click", () => {
-    //   ws.send(JSON.stringify({ type: "join" }));
-    //   joinBtn.style.display = "none";
-    // });
+    joinBtn.addEventListener("click", () => {
+      ws.send(JSON.stringify({ type: "join" }));
+      joinBtn.style.display = "none";
+    });
+    //okasii
   </script>
 </body>
 </html>
