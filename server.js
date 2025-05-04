@@ -69,6 +69,7 @@ wss.on('connection', ws => {
     });
 
     ws.on('close', () => {
+        console.log("❌ WebSocket 接続が切れました");
         clients = clients.filter(c => c !== ws);
         if (ws === waitingPlayer) {
             status = "idle";
